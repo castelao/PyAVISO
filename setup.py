@@ -44,7 +44,7 @@ setup(
     keywords='altimetry, AVISO, TOPEX, JASON, oceanography, Sea Surface Height',
     author = 'Guilherme Castelao',
     author_email = 'guilherme@castelao.net',
-    url = 'https://pypi.python.org/pypi/pyaviso',
+    url = 'https://pyaviso.castelao.net',
     #download_url = 'http://cheeseshop.python.org/packages/source/t/topex/topex-0.1.tar.gz',
     license = 'MIT',
     platforms = ['any'],

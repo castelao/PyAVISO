@@ -1,4 +1,16 @@
+# -*- coding: utf-8 -*-
+
 from setuptools import setup, find_packages
+#from distutils.core import setup
+
+import os
+import sys
+from distutils import log
+
+here = os.path.abspath(os.path.dirname(__file__))
+README = "." #open(os.path.join(here, 'README.rst')).read()
+NEWS = "." #open(os.path.join(here, 'NEWS.txt')).read()
+
 
 classifiers = """\
 Development Status :: 4 - Beta
@@ -7,39 +19,46 @@ Intended Audience :: Science/Research
 Intended Audience :: Developers
 License :: OSI Approved :: MIT License 
 Operating System :: OS Independent
-Programming Language :: Python
+Programming Language :: Python :: 2.6
+Programming Language :: Python :: 2.7
 Topic :: Scientific/Engineering
 Topic :: Software Development :: Libraries :: Python Modules
 """
 
 version = '0.3.0'
 
-setup(name = 'pyaviso',
-      version = version,
-      description = "A very simple library to interpret and load TOPEX/JASON altimetry data",
-      long_description = """\
-A very simple library to read the NetCDF altimetry data of TOPEX and JASON-1. The objective here is automate the procedure of making the datasets ready to use. This include reading how all the required NetCDF files, sub-sampling by desired time/period and creating an accumulated intuitive dictionary of the pertinent data.
+install_requires=[
+    "numpy >= 1.1",
+    "Pydap-3.1.RC1"
+    #"fluid >= 0.1.10",
+],
 
-Although not yet implemented the most interesting feature would be a "TOPEX" class, which would make very simple and intuitive to load, sub-sample and deal with these datasets.""",
-      classifiers=filter(None, classifiers.split("\n")),
-      keywords='altimetry, TOPEX, JASON-1, oceanography, Sea Surface Height',
-      author = 'Guilherme Castelao',
-      author_email = 'guilherme@castelao.net',
-      url = 'https://pypi.python.org/pypi/pyaviso',
-      #download_url = 'http://cheeseshop.python.org/packages/source/t/topex/topex-0.1.tar.gz',
-      license = 'MIT',
-      platforms = ['any'],
-      py_modules=['topex','aviso'],
-      zip_safe=True,
-      # Fix it !!
-      #install_requires=[
-      #    # -*- Extra requirements: -*-
-      #    'dap.plugins.netcdf',
-      #],
-      entry_points="""
-      # -*- Entry points: -*-
-      """,
-     )
+
+setup(
+    name = 'pyaviso',
+    version = version,
+    description = "A very simple library to interpret and load TOPEX/JASON altimetry data",
+    long_description=README + '\n\n' + NEWS,
+    classifiers=filter(None, classifiers.split("\n")),
+    keywords='altimetry, AVISO, TOPEX, JASON, oceanography, Sea Surface Height',
+    author = 'Guilherme Castelao',
+    author_email = 'guilherme@castelao.net',
+    url = 'https://pypi.python.org/pypi/pyaviso',
+    #download_url = 'http://cheeseshop.python.org/packages/source/t/topex/topex-0.1.tar.gz',
+    license = 'MIT',
+    platforms = ['any'],
+    py_modules=['topex','aviso'],
+    zip_safe=True,
+    # Fix it !!
+    #install_requires=[
+    #    # -*- Extra requirements: -*-
+    #    'dap.plugins.netcdf',
+    #],
+    install_requires=install_requires,
+    entry_points="""
+    # -*- Entry points: -*-
+    """,
+    )
 
 
 

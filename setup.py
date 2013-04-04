@@ -29,7 +29,7 @@ version = '0.3.0'
 
 install_requires=[
     "numpy >= 1.1",
-    "Pydap-3.1.RC1"
+    "Pydap >= 3.1.RC1"
     #"fluid >= 0.1.10",
 ],
 

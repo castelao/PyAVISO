@@ -14,7 +14,6 @@ import os
 import os.path
 from datetime import datetime, timedelta
 import time
-from UserDict import UserDict
 import re
 
 import numpy

@@ -25,7 +25,7 @@ Topic :: Scientific/Engineering
 Topic :: Software Development :: Libraries :: Python Modules
 """
 
-version = '0.3.0'
+version = '0.3.1'
 
 install_requires=[
     "numpy >= 1.1",
@@ -59,6 +59,7 @@ setup(
     entry_points="""
     # -*- Entry points: -*-
     """,
+    scripts=["bin/AVISO_download"],
     )
 
 

@@ -21,7 +21,6 @@ from numpy import ma
 
 import pupynere
 from pydap.client import open_url
-from maud import window_1Dmean
 
 
 class Aviso_map(object):
@@ -95,8 +94,8 @@ class Aviso_map(object):
             self.metadata['map'] = "madt"       # madt, msla
         if 'limits' not in self.metadata:
             self.metadata['limits'] = {'latini': 0, 'latfin': 15, 'lonini': 296, 'lonfin': 317}
-        if 'mask_shallow' not in self.metadata:
-            self.metadata['mask_shallow'] = -250
+        #if 'mask_shallow' not in self.metadata:
+        #    self.metadata['mask_shallow'] = -250
         if 'datadir' not in self.metadata:
             self.metadata['datadir'] = "../data"
         if 'urlbase' not in self.metadata:
@@ -117,7 +116,6 @@ class Aviso_map(object):
     def get_data(self):
         """
         """
-        #file = os.path.join(self.metadata['datadir'],self.metadata['source_filename']+".pkl.bz2")
         self.file = os.path.join(self.metadata['datadir'],self.metadata['source_filename']+".nc")
         #self.nc = pupynere.netcdf_file(file, 'w')
         #self.download()
@@ -137,8 +135,7 @@ class Aviso_map(object):
                     pass
                 except:
                     print "Couldn't save the data on pickle"
-        self.set_z()
-        #self.mask()
+        #self.set_z()
         return
 
     def download(self):
@@ -243,29 +240,29 @@ class Aviso_map(object):
 
 
 
-    def set_z(self):
-        """
+def set_z(self):
+    """
 
-             Use http://opendap.ccst.inpe.br/Misc/etopo2/ETOPO2v2c_f4.nc
-        """
-        #Lon,Lat = numpy.meshgrid(self.data['lon'],self.data['lat'])
-        from fluid.common.common import get_bathymery
-        self.data['z'] = get_bathymery(self.data['Lat'], self.data['Lon'], etopo_file="/Users/castelao/work/misc/ETOPO2v2c_f4.nc")
+         Use http://opendap.ccst.inpe.br/Misc/etopo2/ETOPO2v2c_f4.nc
+    """
+    #Lon,Lat = numpy.meshgrid(self.data['lon'],self.data['lat'])
+    from fluid.common.common import get_bathymery
+    self.data['z'] = get_bathymery(self.data['Lat'], self.data['Lon'], etopo_file="/Users/castelao/work/misc/ETOPO2v2c_f4.nc")
 
-    def mask(self):
-        """ Improve it. Make it more flexible
-        """
-        #
-        print "Masking data shallower then: %s" % self.metadata['mask_shallow']
-        bath_mask = self.data['z']>self.metadata['mask_shallow']
-        #
-        Lon,Lat = numpy.meshgrid(self.data['lon'],self.data['lat'])
-        equator_mask = (Lat>-2.5) & (Lat<2.5)
-        #
-        for i in range(len(self.data['datetime'])):
-            self.data['u'][i,:,:]=ma.masked_array(self.data['u'][i,:,:].data,mask=(self.data['u'][i,:,:].mask) | bath_mask | equator_mask)
-            self.data['v'][i,:,:]=ma.masked_array(self.data['v'][i,:,:].data,mask=(self.data['v'][i,:,:].mask) | bath_mask | equator_mask)
-            self.data['h'][i,:,:]=ma.masked_array(self.data['h'][i,:,:].data,mask=(self.data['h'][i,:,:].mask) | bath_mask)
+def mask(self):
+    """ Improve it. Make it more flexible
+    """
+    #
+    print "Masking data shallower then: %s" % self.metadata['mask_shallow']
+    bath_mask = self.data['z']>self.metadata['mask_shallow']
+    #
+    Lon,Lat = numpy.meshgrid(self.data['lon'],self.data['lat'])
+    equator_mask = (Lat>-2.5) & (Lat<2.5)
+    #
+    for i in range(len(self.data['datetime'])):
+        self.data['u'][i,:,:]=ma.masked_array(self.data['u'][i,:,:].data,mask=(self.data['u'][i,:,:].mask) | bath_mask | equator_mask)
+        self.data['v'][i,:,:]=ma.masked_array(self.data['v'][i,:,:].data,mask=(self.data['v'][i,:,:].mask) | bath_mask | equator_mask)
+        self.data['h'][i,:,:]=ma.masked_array(self.data['h'][i,:,:].data,mask=(self.data['h'][i,:,:].mask) | bath_mask)
 
 
 def eke(cutperiod=360, dt=7, verbose=False):
@@ -274,6 +271,7 @@ def eke(cutperiod=360, dt=7, verbose=False):
 
         ATENTION, need to move user and password out of here.
     """
+    from maud import window_1Dmean
     l = cutperiod*24    # From days to hours. Aviso time is on hours.
 
     #self.metadata['urlbase'] = "http://%s:%s@opendap.aviso.oceanobs.com/thredds/dodsC" % (self.metadata['username'], self.metadata['password'])

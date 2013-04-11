@@ -4,10 +4,6 @@
 
 
 """ Module to deal with AVISO datasets
-
-    Migrate from pickle to shove
-    (https://bitbucket.org/luizirber/extract/src/0403757ce04d/tests/extract_simple.py#cl-37)
-    I'm not sure if that's a good idea. I had several problems with the shove in other project.
 """
 
 import os
@@ -33,7 +29,7 @@ class Aviso_map(object):
         """
         """
         self.metadata = metadata or {}
-        #
+
         self.set_default()
         if self.metadata['map'] == 'madt+msla':
             print "Map: madt+msla"
@@ -57,9 +53,7 @@ class Aviso_map(object):
                 self.data['eta'] = data_msla.data['h']
                 self.data['u_anom'] = data_msla.data['u']
                 self.data['v_anom'] = data_msla.data['v']
-                #del(data_madt)
-                #del(data_msla)
-                #self.data = data
+
         elif (self.metadata['map'] == 'madt') or (self.metadata['map'] == 'msla'):
             self.set_source_filename()
             if auto==True:
@@ -94,8 +88,6 @@ class Aviso_map(object):
             self.metadata['map'] = "madt"       # madt, msla
         if 'limits' not in self.metadata:
             self.metadata['limits'] = {'latini': 0, 'latfin': 15, 'lonini': 296, 'lonfin': 317}
-        #if 'mask_shallow' not in self.metadata:
-        #    self.metadata['mask_shallow'] = -250
         if 'datadir' not in self.metadata:
             self.metadata['datadir'] = "../data"
         if 'urlbase' not in self.metadata:
@@ -120,7 +112,6 @@ class Aviso_map(object):
         #self.nc = pupynere.netcdf_file(file, 'w')
         #self.download()
 
-
         if self.metadata['force_download'] == True:
             self.download()
         else:
@@ -135,7 +126,6 @@ class Aviso_map(object):
                     pass
                 except:
                     print "Couldn't save the data on pickle"
-        #self.set_z()
         return
 
     def download(self):
@@ -144,7 +134,6 @@ class Aviso_map(object):
             Migrate it to use np.lib.arrayterator.Arrayterator
         """
         url_h = "%s/%s-h-daily" % (self.metadata['urlbase'], self.metadata['source_filename'])
-        print url_h
         dataset_h = open_url(url_h)
         url_uv = "%s/%s-uv-daily" % (self.metadata['urlbase'], self.metadata['source_filename'])
         dataset_uv = open_url(url_uv)
@@ -172,7 +161,6 @@ class Aviso_map(object):
             print "Problems interpreting the time"
             return
 
-        #self.nc.createDimension('time', len(range(t_ini,t_fin,t_step)))
         #time = self.nc.createVariable('time', 'i', ('time',))
         #time[:] = dataset_h['time'][t_ini:t_fin:t_step]
         #time.units = dataset_h['time'].attributes['units']
@@ -186,7 +174,6 @@ class Aviso_map(object):
         Lonlimits=numpy.arange(Lon.shape[0])[(Lon[:]>=limits["lonini"]) & (Lon[:]<=limits["lonfin"])]
         Lonlimits=[Lonlimits[0],Lonlimits[-1]]
 
-        #data['Lat'], data['Lon'] = numpy.meshgrid( (Lat[Latlimits[0]:Latlimits[-1]]), (Lon[Lonlimits[0]:Lonlimits[-1]]))
         data['Lon'], data['Lat'] = numpy.meshgrid( (Lon[Lonlimits[0]:Lonlimits[-1]]), (Lat[Latlimits[0]:Latlimits[-1]]) )
 
 
@@ -197,7 +184,6 @@ class Aviso_map(object):
         #ssh = Arrayterator(dataset)[t_ini:t_fin:t_step]
 
         #blocks = 1e4
-
 
         file = os.path.join(self.metadata['datadir'],self.metadata['source_filename']+".nc")
         nc = pupynere.netcdf_file(file,'w')
@@ -210,7 +196,6 @@ class Aviso_map(object):
         ti = numpy.arange(t_ini, t_fin, t_step)
         blocks = ti[::dblocks]
         if ti[-1] not in blocks:
-            #blocks.append(t_fin)
             blocks = numpy.append(blocks,t_fin)
 
         ntries = 40
@@ -219,7 +204,6 @@ class Aviso_map(object):
 
             print "Getting %s" % v
             #data['h'] = ma.masked_all((len(ti),Lonlimits[-1]-Lonlimits[0], Latlimits[-1]-Latlimits[0]), dtype=numpy.float64)
-            #self.data[v] = nc.createVariable(v, 'f', ('time', 'lon', 'lat'))
             self.data[v] = nc.createVariable(v, 'f', ('time', 'lat', 'lon'))
             self.data[v].missing_value = missing_value
             for b1, b2 in zip(blocks[:-1], blocks[1:]):
@@ -228,16 +212,13 @@ class Aviso_map(object):
                 for i in range(ntries):
                     print "Try n: %s" % i
                     try:
-                        #self.data[v][ind] = dataset[b1:b2:t_step, Lonlimits[0]:Lonlimits[-1],Latlimits[0]:Latlimits[-1]]
                         self.data[v][ind] = dataset[b1:b2:t_step, Lonlimits[0]:Lonlimits[-1],Latlimits[0]:Latlimits[-1]].swapaxes(1,2).astype('f')
                         break
                     except:
                         waitingtime = 30+i*20
                         print "Failed to download. I'll try again in %ss" % waitingtime
                         time.sleep(waitingtime)
-                        #ssh = dataset_h['Grid_0001']['Grid_0001']
             #data['h'] = 1e-2*data['h'].swapaxes(1,2)
-
 
 
 def set_z(self):

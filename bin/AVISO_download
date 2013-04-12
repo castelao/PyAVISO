@@ -6,7 +6,7 @@
 """
 
 from optparse import OptionParser
-from os.path import realpath, basename
+from os.path import dirname, basename
 
 import aviso
 
@@ -20,6 +20,9 @@ parser.add_option("-c", "--config", dest="cfg_file",
 
 parser.add_option("-R", "--region", dest="region",
             help="Area to download S/W/N/E")
+
+parser.add_option("-T", dest="time",
+            help="Timing limits 1998-07-01/1999-01-01")
 
 parser.add_option("--timestep", dest="dt",
             help="Time step [days] between snapshots", default=7)
@@ -61,8 +64,8 @@ cfg = {'username': options.username,
             },
         'map': options.map,
         'type': options.type,
-        'datadir': realpath(output),
-        'filename': basename(output),
+        'datadir': dirname(options.output),
+        'filename': basename(options.output),
         'force_download': True,
         }
 

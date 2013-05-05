@@ -91,6 +91,8 @@ class Aviso_map(object):
         if 'datadir' not in self.metadata:
             self.metadata['datadir'] = "./" #"../data"
         if 'urlbase' not in self.metadata:
+            # Double check this. I believe now it is required to have a password,
+            #   so I should clean the option with no use/pass
             if ('username' in self.metadata) & ('password' in self.metadata):
                 self.metadata['urlbase'] = "http://%s:%s@opendap.aviso.oceanobs.com/thredds/dodsC" % (self.metadata['username'], self.metadata['password'])
             else:

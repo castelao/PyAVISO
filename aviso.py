@@ -50,8 +50,8 @@ class AVISO_fetch(object):
             self.cfg['force_download'] = False
 
         self.set_source_filename()
-        self.set_dataset()
-        self.donwload_time()
+        #self.set_dataset()
+        self.download_time()
 
 
     def set_logger(self):
@@ -113,18 +113,22 @@ class AVISO_fetch(object):
                 'uv': "%s/%s-uv-daily" % (self.cfg['urlbase'], self.cfg['source_filename'])}
         self.dataset = {'h': open_url(self.url['h']), 'uv': open_url(self.url['uv'])}
 
-    def donwload_time(self):
+    def download_time(self):
         """
         """
         self.logger.debug("Downloading time")
         if 't_ini' not in self.cfg['limits']:
             self.cfg['limits']['t_ini'] = 0
-        if 't_fin' not in self.cfg['limits']:
-            self.cfg['limits']['t_fin'] = self['dataset']['h']['time'].shape[0]
+            self.logger.debug("Setting t_ini: %s" % self.cfg['limits']['t_ini'])
+
         if 't_step' not in self.cfg['limits']:
             self.cfg['limits']['t_step'] = 1
-        #else:
-        #    print "Atention!! t_step set to: %s" % self.metadata['limits']['t_step']
+            self.logger.debug("Setting t_step: %s" % self.cfg['limits']['t_step'])
+
+        if 't_fin' not in self.cfg['limits']:
+            self.cfg['limits']['t_fin'] = self['dataset']['h']['time'].shape[0]
+            self.logger.debug("Setting t_fin: %s" % self.cfg['limits']['t_fin'])
+
         t_ini = self.cfg['limits']['t_ini']
         t_fin = self.cfg['limits']['t_fin']
         t_step = self.cfg['limits']['t_step']
@@ -136,8 +140,83 @@ class AVISO_fetch(object):
         #if (re.match('^hours since \d{4}-\d{2}-\d{2}$',dataset_h['time'].attributes['units'])):
         if (re.match('^hours since 1950-01-01',self.dataset['h']['time'].attributes['units'])):
             data['datetime'] = numpy.array([t0+timedelta(hours=h) for h in self.dataset['h']['time'][t_ini:t_fin:t_step].tolist()])
-        #else:
-        #    print "Problems interpreting the time"
+        else:
+            self.logger.error("Problems interpreting the time")
+
+
+    def download_LonLat(self):
+        """ Download the Lon x Lat coordinates
+        """
+        data = {}
+        limits = self.cfg['limits']
+        Lat = self.dataset['h']['NbLatitudes']
+        Lon = self.dataset['h']['NbLongitudes']
+
+        Latlimits = numpy.arange(Lat.shape[0])[(Lat[:]>=limits["latini"]) & (Lat[:]<=limits["latfin"])]
+        Latlimits = [Latlimits[0],Latlimits[-1]]
+
+        Lonlimits = numpy.arange(Lon.shape[0])[(Lon[:]>=limits["lonini"]) & (Lon[:]<=limits["lonfin"])]
+        Lonlimits=[Lonlimits[0],Lonlimits[-1]]
+
+        data['Lon'], data['Lat'] = numpy.meshgrid( (Lon[Lonlimits[0]:Lonlimits[-1]]), (Lat[Latlimits[0]:Latlimits[-1]]) )
+
+
+        self.slice_size = (Lonlimits[-1]-Lonlimits[0])*
+                    (Latlimits[-1]-Latlimits[0])
+
+        # ========
+
+        file = os.path.join(self.metadata['datadir'],self.metadata['source_filename']+".nc")
+        nc = pupynere.netcdf_file(file,'w')
+        nc.createDimension('time', len(range(t_ini,t_fin,t_step)))
+        nc.createDimension('lon', (Lonlimits[-1]-Lonlimits[0]))
+        nc.createDimension('lat', (Latlimits[-1]-Latlimits[0]))
+
+
+    def download_data(self):
+        """ Download h and uv in blocks
+        """
+
+        dblocks = max(1, int(1e5/ self.slice_size))
+
+        ti = numpy.arange(self.cfg['limits']['t_ini'], 
+                self.cfg['limits']['t_fin'], 
+                self.cfg['limits']['t_step'])
+
+        blocks = ti[::dblocks]
+        if ti[-1] not in blocks:
+            blocks = numpy.append(blocks, self.cfg['limits']['t_fin'])
+
+        ntries = 40
+        #------
+        for v, dataset, missing_value in zip(['h','u','v'], 
+                [dataset_h['Grid_0001']['Grid_0001'], 
+                    dataset_uv['Grid_0001']['Grid_0001'], 
+                    dataset_uv['Grid_0002']['Grid_0002']], 
+                [dataset_h['Grid_0001']._FillValue, 
+                    dataset_uv['Grid_0001']._FillValue, 
+                    dataset_uv['Grid_0002']._FillValue]):
+
+            print "Getting %s" % v
+            #data['h'] = ma.masked_all((len(ti),Lonlimits[-1]-Lonlimits[0], Latlimits[-1]-Latlimits[0]), dtype=numpy.float64)
+            self.data[v] = nc.createVariable(v, 'f', ('time', 'lat', 'lon'))
+            self.data[v].missing_value = missing_value
+            for b1, b2 in zip(blocks[:-1], blocks[1:]):
+                print "From %s to %s of %s" % (b1, b2, blocks[-1])
+                ind = numpy.nonzero((ti>=b1) & (ti<b2))
+                for i in range(ntries):
+                    print "Try n: %s" % i
+                    try:
+                        self.data[v][ind] = dataset[b1:b2:t_step, Lonlimits[0]:Lonlimits[-1],Latlimits[0]:Latlimits[-1]].swapaxes(1,2).astype('f')
+                        break
+                    except:
+                        waitingtime = 30+i*20
+                        print "Failed to download. I'll try again in %ss" % waitingtime
+                        time.sleep(waitingtime)
+            #data['h'] = 1e-2*data['h'].swapaxes(1,2)
+
+
+
 
 
 

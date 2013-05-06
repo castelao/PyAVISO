@@ -25,7 +25,7 @@ Topic :: Scientific/Engineering
 Topic :: Software Development :: Libraries :: Python Modules
 """
 
-version = '0.3.1'
+version = '0.4.0'
 
 install_requires=[
     "numpy >= 1.1",

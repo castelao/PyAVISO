@@ -11,12 +11,135 @@ import os.path
 from datetime import datetime, timedelta
 import time
 import re
+import logging
+import logging.handlers
 
 import numpy
 from numpy import ma
 
 import pupynere
 from pydap.client import open_url
+
+# Time to refactor and change somethings. Once class to download, and another
+#   on the top of that to handle the file like it was a MA
+
+class AVISO_fetch(object):
+    """ Class to fetch maps from AVISO
+    """
+
+    def __init__(self, cfg):
+        """
+        """
+        self.cfg = cfg
+
+        self.set_logger()
+        self.logger.info("Initializing AVISO_fetch class")
+        self.logger.debug("cfg: %s" % cfg)
+
+        if ('username' not in self.cfg) | ('password' not in self.cfg):
+            self.logger.error("Aviso DAP server requires a registered username and password. I'll abort.")
+            return
+
+        if 'urlbase' not in self.cfg:
+            self.cfg['urlbase'] = \
+                    "http://%s:%s@opendap.aviso.oceanobs.com/thredds/dodsC" % \
+                    (self.cfg['username'], self.cfg['password'])
+        self.logger.debug("urlbase: %s" % self.cfg['urlbase'])
+
+        if 'force_download' not in self.cfg:
+            self.cfg['force_download'] = False
+
+        self.set_source_filename()
+        self.set_dataset()
+        self.donwload_time()
+
+
+    def set_logger(self):
+        """
+        """
+        # Creating another log level
+        logging.VERBOSE = logging.DEBUG - 1
+        logging.addLevelName(logging.VERBOSE, 'VERBOSE')
+
+        #create logger
+        logger = logging.getLogger("AVISO fetch")
+        logger.setLevel(logging.VERBOSE)
+
+        #create console handler and set level to debug
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.WARN)
+        #create formatter
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s -  %(message)s")
+        #add formatter to ch
+        ch.setFormatter(formatter)
+        #add ch to logger
+        logger.addHandler(ch)
+
+        if 'logfile' in  self.cfg:
+            #create a rotate file handler
+            fh = logging.handlers.RotatingFileHandler(
+                    self.cfg['logfile'],
+                    mode='a', maxBytes=1000000, backupCount=10)
+            fh.setLevel(logging.DEBUG)
+            #create formatter
+            formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s -  %(message)s")
+            #add formatter to ch
+            fh.setFormatter(formatter)
+            #add ch to logger
+            logger.addHandler(fh)
+
+        #"application" code
+        #logger.debug("debug message")
+        #logger.info("info message")
+        #logger.warn("warn message")
+        #logger.error("error message")
+        #logger.critical("critical message")
+
+        self.logger = logger
+
+
+    def set_source_filename(self):
+        """
+        """
+        self.cfg['source_filename'] = "dataset-duacs-dt-%s-global-merged-%s" % (self.cfg['type'], self.cfg['map'])
+        self.logger.debug("source_filename: %s" % self.cfg['source_filename'])
+
+    def set_dataset(self):
+        """
+        """
+        self.logger.debug("Setting the dataset on the DAP server")
+
+        self.url = {'h': "%s/%s-h-daily" % (self.cfg['urlbase'], self.cfg['source_filename']), 
+                'uv': "%s/%s-uv-daily" % (self.cfg['urlbase'], self.cfg['source_filename'])}
+        self.dataset = {'h': open_url(self.url['h']), 'uv': open_url(self.url['uv'])}
+
+    def donwload_time(self):
+        """
+        """
+        self.logger.debug("Downloading time")
+        if 't_ini' not in self.cfg['limits']:
+            self.cfg['limits']['t_ini'] = 0
+        if 't_fin' not in self.cfg['limits']:
+            self.cfg['limits']['t_fin'] = self['dataset']['h']['time'].shape[0]
+        if 't_step' not in self.cfg['limits']:
+            self.cfg['limits']['t_step'] = 1
+        #else:
+        #    print "Atention!! t_step set to: %s" % self.metadata['limits']['t_step']
+        t_ini = self.cfg['limits']['t_ini']
+        t_fin = self.cfg['limits']['t_fin']
+        t_step = self.cfg['limits']['t_step']
+        # ----
+        data={}
+        #
+        #from coards import from_udunits
+        t0=datetime(1950,1,1)
+        #if (re.match('^hours since \d{4}-\d{2}-\d{2}$',dataset_h['time'].attributes['units'])):
+        if (re.match('^hours since 1950-01-01',self.dataset['h']['time'].attributes['units'])):
+            data['datetime'] = numpy.array([t0+timedelta(hours=h) for h in self.dataset['h']['time'][t_ini:t_fin:t_step].tolist()])
+        #else:
+        #    print "Problems interpreting the time"
+
+
 
 
 class Aviso_map(object):

@@ -25,6 +25,17 @@ from pydap.client import open_url
 
 class AVISO_fetch(object):
     """ Class to fetch maps from AVISO
+
+        - Deal with the file to save the data
+        - Download
+            - Download LatLon
+                - Adjust -180/180 <-> 0/360
+                - First to second limit
+            - Download time
+                - Parse data input into time index
+            - Define the size of the blocks (number of time snapshots per download)
+            - Download data in blocks
+            - Think about how to save the data in a generic way? This class should worry only about download and save it. Another Class should be created on the top of this to use it and offer the downloaded data as a MA.
     """
 
     def __init__(self, cfg):
@@ -50,8 +61,14 @@ class AVISO_fetch(object):
             self.cfg['force_download'] = False
 
         self.set_source_filename()
-        #self.set_dataset()
-        self.download_time()
+        self.set_dataset()
+
+        self.file = os.path.join(self.cfg['datadir'],self.cfg['source_filename']+".nc")
+        self.nc = pupynere.netcdf_file(self.file,'w')
+
+        #self.download_time()
+        self.download_LonLat()
+        #self.download_data()
 
 
     def set_logger(self):
@@ -113,6 +130,8 @@ class AVISO_fetch(object):
                 'uv': "%s/%s-uv-daily" % (self.cfg['urlbase'], self.cfg['source_filename'])}
         self.dataset = {'h': open_url(self.url['h']), 'uv': open_url(self.url['uv'])}
 
+        self.logger.debug("Dataset on the DAP server is ready")
+
     def download_time(self):
         """
         """
@@ -143,6 +162,8 @@ class AVISO_fetch(object):
         else:
             self.logger.error("Problems interpreting the time")
 
+        self.nc.createDimension('time', len(range(t_ini,t_fin,t_step)))
+        self.nc.close()
 
     def download_LonLat(self):
         """ Download the Lon x Lat coordinates
@@ -158,26 +179,28 @@ class AVISO_fetch(object):
         Lonlimits = numpy.arange(Lon.shape[0])[(Lon[:]>=limits["lonini"]) & (Lon[:]<=limits["lonfin"])]
         Lonlimits=[Lonlimits[0],Lonlimits[-1]]
 
-        data['Lon'], data['Lat'] = numpy.meshgrid( (Lon[Lonlimits[0]:Lonlimits[-1]]), (Lat[Latlimits[0]:Latlimits[-1]]) )
+        Lon, Lat = numpy.meshgrid( (Lon[Lonlimits[0]:Lonlimits[-1]]), (Lat[Latlimits[0]:Latlimits[-1]]) )
 
 
-        self.slice_size = (Lonlimits[-1]-Lonlimits[0])*
+        self.slice_size = (Lonlimits[-1]-Lonlimits[0])* \
                     (Latlimits[-1]-Latlimits[0])
 
         # ========
+        self.nc.createDimension('lon', (Lonlimits[-1]-Lonlimits[0]))
+        self.nc.createDimension('lat', (Latlimits[-1]-Latlimits[0]))
 
-        file = os.path.join(self.metadata['datadir'],self.metadata['source_filename']+".nc")
-        nc = pupynere.netcdf_file(file,'w')
-        nc.createDimension('time', len(range(t_ini,t_fin,t_step)))
-        nc.createDimension('lon', (Lonlimits[-1]-Lonlimits[0]))
-        nc.createDimension('lat', (Latlimits[-1]-Latlimits[0]))
+        ncLon = self.nc.createVariable('Lon', 'f', ('lat', 'lon'))
+        ncLat = self.nc.createVariable('Lat', 'f', ('lat', 'lon'))
 
+        ncLon[:] = Lon
+        ncLat[:] = Lat
+        self.nc.close()
 
     def download_data(self):
         """ Download h and uv in blocks
         """
 
-        dblocks = max(1, int(1e5/ self.slice_size))
+        dblocks = max(1, int(1e5/self.slice_size))
 
         ti = numpy.arange(self.cfg['limits']['t_ini'], 
                 self.cfg['limits']['t_fin'], 
@@ -214,8 +237,6 @@ class AVISO_fetch(object):
                         print "Failed to download. I'll try again in %ss" % waitingtime
                         time.sleep(waitingtime)
             #data['h'] = 1e-2*data['h'].swapaxes(1,2)
-
-
 
 
 

@@ -63,7 +63,7 @@ class AVISO_fetch(object):
         self.set_source_filename()
         self.set_dataset()
 
-        self.file = os.path.join(self.cfg['datadir'],self.cfg['filename']+".nc")
+        self.file = os.path.join(self.cfg['datadir'], self.cfg['filename'])
         self.nc = pupynere.netcdf_file(self.file,'w')
 
         self.download_time()

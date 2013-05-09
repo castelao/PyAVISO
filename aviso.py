@@ -66,7 +66,7 @@ class AVISO_fetch(object):
         self.file = os.path.join(self.cfg['datadir'],self.cfg['source_filename']+".nc")
         self.nc = pupynere.netcdf_file(self.file,'w')
 
-        #self.download_time()
+        self.download_time()
         self.download_LonLat()
         #self.download_data()
 
@@ -145,7 +145,7 @@ class AVISO_fetch(object):
             self.logger.debug("Setting t_step: %s" % self.cfg['limits']['t_step'])
 
         if 't_fin' not in self.cfg['limits']:
-            self.cfg['limits']['t_fin'] = self['dataset']['h']['time'].shape[0]
+            self.cfg['limits']['t_fin'] = self.dataset['h']['time'].shape[0]
             self.logger.debug("Setting t_fin: %s" % self.cfg['limits']['t_fin'])
 
         t_ini = self.cfg['limits']['t_ini']
@@ -155,19 +155,25 @@ class AVISO_fetch(object):
         data={}
         #
         #from coards import from_udunits
-        t0=datetime(1950,1,1)
+        #t0=datetime(1950,1,1)
         #if (re.match('^hours since \d{4}-\d{2}-\d{2}$',dataset_h['time'].attributes['units'])):
-        if (re.match('^hours since 1950-01-01',self.dataset['h']['time'].attributes['units'])):
-            data['datetime'] = numpy.array([t0+timedelta(hours=h) for h in self.dataset['h']['time'][t_ini:t_fin:t_step].tolist()])
-        else:
-            self.logger.error("Problems interpreting the time")
+        #if (re.match('^hours since 1950-01-01',self.dataset['h']['time'].attributes['units'])):
+        #    t = self.dataset['h']['time'][t_ini:t_fin:t_step].tolist()
+        #    data['datetime'] = numpy.array([t0+timedelta(hours=h) for h in t])
+        #else:
+        #    self.logger.error("Problems interpreting the time")
+
+        t = self.dataset['h']['time'][t_ini:t_fin:t_step].tolist()
 
         self.nc.createDimension('time', len(range(t_ini,t_fin,t_step)))
-        self.nc.close()
+        nct = self.nc.createVariable('time', 'f', ('time', ))
+        nct[:] = t
+        nct.units = self.dataset['h']['time'].attributes['units']
 
     def download_LonLat(self):
         """ Download the Lon x Lat coordinates
         """
+        self.logger.debug("Downloading LonLat")
         data = {}
         limits = self.cfg['limits']
         Lat = self.dataset['h']['NbLatitudes']
@@ -186,15 +192,14 @@ class AVISO_fetch(object):
                     (Latlimits[-1]-Latlimits[0])
 
         # ========
-        self.nc.createDimension('lon', (Lonlimits[-1]-Lonlimits[0]))
         self.nc.createDimension('lat', (Latlimits[-1]-Latlimits[0]))
+        self.nc.createDimension('lon', (Lonlimits[-1]-Lonlimits[0]))
 
-        ncLon = self.nc.createVariable('Lon', 'f', ('lat', 'lon'))
         ncLat = self.nc.createVariable('Lat', 'f', ('lat', 'lon'))
+        ncLon = self.nc.createVariable('Lon', 'f', ('lat', 'lon'))
 
-        ncLon[:] = Lon
         ncLat[:] = Lat
-        self.nc.close()
+        ncLon[:] = Lon
 
     def download_data(self):
         """ Download h and uv in blocks

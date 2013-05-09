@@ -63,12 +63,12 @@ class AVISO_fetch(object):
         self.set_source_filename()
         self.set_dataset()
 
-        self.file = os.path.join(self.cfg['datadir'],self.cfg['source_filename']+".nc")
+        self.file = os.path.join(self.cfg['datadir'],self.cfg['filename']+".nc")
         self.nc = pupynere.netcdf_file(self.file,'w')
 
         self.download_time()
         self.download_LonLat()
-        #self.download_data()
+        self.download_data()
 
 
     def set_logger(self):
@@ -185,6 +185,9 @@ class AVISO_fetch(object):
         Lonlimits = numpy.arange(Lon.shape[0])[(Lon[:]>=limits["lonini"]) & (Lon[:]<=limits["lonfin"])]
         Lonlimits=[Lonlimits[0],Lonlimits[-1]]
 
+        self.cfg['limits']['Latlimits'] = Latlimits
+        self.cfg['limits']['Lonlimits'] = Lonlimits
+
         Lon, Lat = numpy.meshgrid( (Lon[Lonlimits[0]:Lonlimits[-1]]), (Lat[Latlimits[0]:Latlimits[-1]]) )
 
 
@@ -205,7 +208,9 @@ class AVISO_fetch(object):
         """ Download h and uv in blocks
         """
 
-        dblocks = max(1, int(1e5/self.slice_size))
+        # Will download blocks of at most 5MB
+        #   i.e. 4e7 floats of 32bits.
+        dblocks = max(1, int(4e7/self.slice_size))
 
         ti = numpy.arange(self.cfg['limits']['t_ini'], 
                 self.cfg['limits']['t_fin'], 
@@ -217,25 +222,31 @@ class AVISO_fetch(object):
 
         ntries = 40
         #------
+        data = {}
         for v, dataset, missing_value in zip(['h','u','v'], 
-                [dataset_h['Grid_0001']['Grid_0001'], 
-                    dataset_uv['Grid_0001']['Grid_0001'], 
-                    dataset_uv['Grid_0002']['Grid_0002']], 
-                [dataset_h['Grid_0001']._FillValue, 
-                    dataset_uv['Grid_0001']._FillValue, 
-                    dataset_uv['Grid_0002']._FillValue]):
+                [self.dataset['h']['Grid_0001']['Grid_0001'], 
+                    self.dataset['uv']['Grid_0001']['Grid_0001'], 
+                    self.dataset['uv']['Grid_0002']['Grid_0002']], 
+                [self.dataset['h']['Grid_0001']._FillValue, 
+                    self.dataset['uv']['Grid_0001']._FillValue, 
+                    self.dataset['uv']['Grid_0002']._FillValue]):
 
             print "Getting %s" % v
             #data['h'] = ma.masked_all((len(ti),Lonlimits[-1]-Lonlimits[0], Latlimits[-1]-Latlimits[0]), dtype=numpy.float64)
-            self.data[v] = nc.createVariable(v, 'f', ('time', 'lat', 'lon'))
-            self.data[v].missing_value = missing_value
+            data[v] = self.nc.createVariable(v, 'f', ('time', 'lat', 'lon'))
+            data[v].missing_value = missing_value
+
+            # Work on these limits. Must have a better way to handle it
+            Lonlimits = self.cfg['limits']['Lonlimits']
+            Latlimits = self.cfg['limits']['Latlimits']
+
             for b1, b2 in zip(blocks[:-1], blocks[1:]):
                 print "From %s to %s of %s" % (b1, b2, blocks[-1])
                 ind = numpy.nonzero((ti>=b1) & (ti<b2))
                 for i in range(ntries):
                     print "Try n: %s" % i
                     try:
-                        self.data[v][ind] = dataset[b1:b2:t_step, Lonlimits[0]:Lonlimits[-1],Latlimits[0]:Latlimits[-1]].swapaxes(1,2).astype('f')
+                        data[v][ind] = dataset[b1:b2:self.cfg['limits']['t_step'], Lonlimits[0]:Lonlimits[-1],Latlimits[0]:Latlimits[-1]].swapaxes(1,2).astype('f')
                         break
                     except:
                         waitingtime = 30+i*20

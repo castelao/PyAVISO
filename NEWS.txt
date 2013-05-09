@@ -1,0 +1,18 @@
+May-9-2013 0.4.1
+I'm refactoring the whole system. It will be organized with a fundamental
+  class that downloads the data, and that's it. The other functionalities
+  will be rebuild in different classes using this fundamental one.
+
+AVISO_download now is based on the class AVISO_fetch.
+
+
+Apr-9-2013
+
+Initial prototype of bin/AVISO_download
+
+
+Apr-4-2013
+
+I wrote pytopex somehere around 2006, during my PhD, while I was studing the North Brazil Current Rings, but I haven't working on that anymore for several years. topex.py is outdated, but still have some usefull functions if you need to work with the along track data.
+
+aviso.py is a library to download data from AVISO. At this point it handles only absolute dynamic topography and sea surface anomaly, but could be easily adapted for other type of data. The download uses the AVISO's DAP server, and have a safe mode in case of slow and unreliable network. To avoid overload the server, it request the data in smaller blocks and if loose the connection in the process, it stand by and try again later from the point it stopped.

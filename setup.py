@@ -25,7 +25,7 @@ Topic :: Scientific/Engineering
 Topic :: Software Development :: Libraries :: Python Modules
 """
 
-version = '0.4.1'
+version = '0.5.0'
 
 install_requires=[
     "numpy >= 1.1",
@@ -36,7 +36,7 @@ install_requires=[
 
 
 setup(
-    name = 'pyaviso',
+    name = 'AVISO',
     version = version,
     description = "A very simple library to interpret and load TOPEX/JASON altimetry data",
     long_description=README + '\n\n' + NEWS,

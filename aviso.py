@@ -15,6 +15,7 @@ import logging
 import logging.handlers
 
 import numpy
+import numpy as np
 from numpy import ma
 
 import pupynere
@@ -136,17 +137,28 @@ class AVISO_fetch(object):
         """
         """
         self.logger.debug("Downloading time")
+        t = self.dataset['h']['time'][:]
+        # Improve it and extract this date from the DAP server
+        d0=datetime(1950,1,1)
         if 't_ini' not in self.cfg['limits']:
-            self.cfg['limits']['t_ini'] = 0
-            self.logger.debug("Setting t_ini: %s" % self.cfg['limits']['t_ini'])
+            if 'd_ini' in self.cfg['limits']:
+                d = datetime.strptime(self.cfg['limits']['d_ini'], '%Y-%m-%d')
+                self.cfg['limits']['t_ini'] = np.nonzero(t>=((d-d0).days*24))[0][0]
+            else:
+                self.cfg['limits']['t_ini'] = 0
+                self.logger.debug("Setting t_ini: %s" % self.cfg['limits']['t_ini'])
 
         if 't_step' not in self.cfg['limits']:
             self.cfg['limits']['t_step'] = 1
             self.logger.debug("Setting t_step: %s" % self.cfg['limits']['t_step'])
 
         if 't_fin' not in self.cfg['limits']:
-            self.cfg['limits']['t_fin'] = self.dataset['h']['time'].shape[0]
-            self.logger.debug("Setting t_fin: %s" % self.cfg['limits']['t_fin'])
+            if 'd_fin' in self.cfg['limits']:
+                d = datetime.strptime(self.cfg['limits']['d_fin'], '%Y-%m-%d')
+                self.cfg['limits']['t_fin'] = np.nonzero(t>((d-d0).days*24))[0][0]
+            else:
+                self.cfg['limits']['t_fin'] = self.dataset['h']['time'].shape[0]
+                self.logger.debug("Setting t_fin: %s" % self.cfg['limits']['t_fin'])
 
         t_ini = self.cfg['limits']['t_ini']
         t_fin = self.cfg['limits']['t_fin']

@@ -14,7 +14,7 @@ Fast aviso howto
 ----------------
 Just run in the shell
 
-AVISO_download -R -5/310/15/350 -u user_at_AVISO_DAP -p password_at_AVISO_DAP --timestep=365
+AVISO_download -R -5/310/15/350 -D 1999-01-01/1999-06-01 -u user_at_AVISO_DAP -p password_at_AVISO_DAP --timestep=30
 
 topex
 -----

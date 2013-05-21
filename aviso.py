@@ -188,27 +188,42 @@ class AVISO_fetch(object):
         self.logger.debug("Downloading LonLat")
         data = {}
         limits = self.cfg['limits']
-        Lat = self.dataset['h']['NbLatitudes']
-        Lon = self.dataset['h']['NbLongitudes']
+        Lat = self.dataset['h']['NbLatitudes'][:].astype('f')
+        Lon = self.dataset['h']['NbLongitudes'][:].astype('f')
+
+        # If data is requested as -180/180, convert to 0/360,
+        #   which is the pattern in AVISO
+        if limits['lonini'] < 0: limits['lonini']+=360
+        if limits['lonfin'] < 0: limits['lonfin']+=360
 
         Latlimits = numpy.arange(Lat.shape[0])[(Lat[:]>=limits["latini"]) & (Lat[:]<=limits["latfin"])]
         Latlimits = [Latlimits[0],Latlimits[-1]]
 
-        Lonlimits = numpy.arange(Lon.shape[0])[(Lon[:]>=limits["lonini"]) & (Lon[:]<=limits["lonfin"])]
-        Lonlimits=[Lonlimits[0],Lonlimits[-1]]
+        lat = Lat[Latlimits[0]:Latlimits[-1]]
+
+        if limits['lonfin'] > limits['lonini']:
+            Lonlimits = numpy.arange(Lon.shape[0])[(Lon[:]>=limits["lonini"]) & (Lon[:]<=limits["lonfin"])]
+            Lonlimits=[Lonlimits[0],Lonlimits[-1]]
+
+            lon = Lon[Lonlimits[0]:Lonlimits[-1]]
+        else:
+            Lonlimits = [np.nonzero(Lon>=limits['lonini'])[0][0], 
+                    np.nonzero(Lon<=limits['lonfin'])[0][-1]+1] 
+
+            lon = np.append(Lon[Lonlimits[0]:],Lon[:Lonlimits[1]])
+                    
 
         self.cfg['limits']['Latlimits'] = Latlimits
         self.cfg['limits']['Lonlimits'] = Lonlimits
 
-        Lon, Lat = numpy.meshgrid( (Lon[Lonlimits[0]:Lonlimits[-1]]), (Lat[Latlimits[0]:Latlimits[-1]]) )
 
+        Lon, Lat = numpy.meshgrid( lon, lat )
 
-        self.slice_size = (Lonlimits[-1]-Lonlimits[0])* \
-                    (Latlimits[-1]-Latlimits[0])
+        self.slice_size = lon.shape[0]*lat.shape[0]
 
         # ========
-        self.nc.createDimension('lat', (Latlimits[-1]-Latlimits[0]))
-        self.nc.createDimension('lon', (Lonlimits[-1]-Lonlimits[0]))
+        self.nc.createDimension('lat', lat.shape[0])
+        self.nc.createDimension('lon', lon.shape[0])
 
         ncLat = self.nc.createVariable('Lat', 'f', ('lat', 'lon'))
         ncLon = self.nc.createVariable('Lon', 'f', ('lat', 'lon'))
@@ -258,14 +273,19 @@ class AVISO_fetch(object):
                 for i in range(ntries):
                     print "Try n: %s" % i
                     try:
-                        data[v][ind] = dataset[b1:b2:self.cfg['limits']['t_step'], Lonlimits[0]:Lonlimits[-1],Latlimits[0]:Latlimits[-1]].swapaxes(1,2).astype('f')
+                        if Lonlimits[1] > Lonlimits[0]:
+                            tmp = dataset[b1:b2:self.cfg['limits']['t_step'], Lonlimits[0]:Lonlimits[-1],Latlimits[0]:Latlimits[-1]]
+                        else:
+                            tmp1 = dataset[b1:b2:self.cfg['limits']['t_step'], Lonlimits[0]:,Latlimits[0]:Latlimits[-1]]
+                            tmp2 = dataset[b1:b2:self.cfg['limits']['t_step'], :Lonlimits[-1],Latlimits[0]:Latlimits[-1]]
+                            tmp = np.append(tmp1, tmp2, axis=1)
+                        data[v][ind] = tmp.swapaxes(1,2).astype('f')
                         break
                     except:
                         waitingtime = 30+i*20
                         print "Failed to download. I'll try again in %ss" % waitingtime
                         time.sleep(waitingtime)
             #data['h'] = 1e-2*data['h'].swapaxes(1,2)
-
 
 
 

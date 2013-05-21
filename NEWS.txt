@@ -1,3 +1,15 @@
+May-21-2013 0.7.0
+
+It now handles negative longitudes, as well as initial longitude bigger than the final one. And in that case it circles the Earth passing through Greenwich until the final longitude.
+
+AVISO_download -R -15/-10/15/-60 -D 1999-01-01/1999-01-10 -u aviso-users -p grid2010 --timestep=5 -o aviso.nc
+
+On the example ahead, it covers from 10W, pass through 0 and 180, until reaches 60W. While in the example bellow
+
+AVISO_download -R -15/-60/15/-10 -D 1999-01-01/1999-01-10 -u aviso-users -p grid2010 --timestep=5 -o aviso.nc
+
+it covers from 60W to 10W.
+
 May-14-2013 0.6.0
 
 AVISO_download now has the option -D, to handle dates, like

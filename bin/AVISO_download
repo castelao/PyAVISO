@@ -21,8 +21,11 @@ parser.add_option("-c", "--config", dest="cfg_file",
 parser.add_option("-R", "--region", dest="region",
             help="Area to download S/W/N/E")
 
-parser.add_option("-T", dest="time",
-            help="Timing limits 1998-07-01/1999-01-01")
+parser.add_option("-D", dest="date",
+            help="Timing limits 1998-07-21/1999-01-01", default='/')
+
+parser.add_option("--logfile", dest="logfile",
+            help="Logfile")
 
 parser.add_option("--timestep", dest="dt",
             help="Time step [days] between snapshots", default=7)
@@ -34,7 +37,7 @@ parser.add_option("-p", "--password", dest="password",
             help="password at AVISO")
 
 parser.add_option("--map", dest="map",
-        help="Type of map: 'madt' or 'msla' or 'madt+msla'", default='madt+msla')
+        help="Type of map: 'madt' or 'msla' or 'madt+msla'", default='madt')
 
 parser.add_option("--type", dest="type",
         help="Type of data: 'upd' or 'ref'", default='upd')
@@ -51,12 +54,11 @@ cfg_file = options.cfg_file
 #for op in ['username', 'password']:
 
 # Extracting boundary coordinates
-LatIni, LatFin, LonIni, LonFin = options.region.split('/')
+LatIni, LonIni, LatFin, LonFin = options.region.split('/')
 
 cfg = {'username': options.username,
         'password': options.password,
         'limits':{'t_step': int(options.dt),
-            #'t_fin': 10,
             'latini': float(LatIni),
             'latfin': float(LatFin),
             'lonini': float(LonIni),
@@ -67,6 +69,16 @@ cfg = {'username': options.username,
         'datadir': dirname(options.output),
         'filename': basename(options.output),
         'force_download': True,
+        'logfile': 'aviso.log'
         }
 
-data = aviso.Aviso_map(metadata=cfg)
+try:
+    d_ini, d_fin = options.date.split('/')
+    if d_ini != '': cfg['limits']['d_ini'] = d_ini
+    if d_fin != '': cfg['limits']['d_fin'] = d_fin
+except:
+    pass
+
+aviso.AVISO_fetch(cfg)
+
+#data = aviso.Aviso_map(metadata=cfg)

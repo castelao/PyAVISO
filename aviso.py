@@ -18,7 +18,10 @@ import numpy
 import numpy as np
 from numpy import ma
 
-import pupynere
+try:
+    import netCDF4
+except:
+    import pupynere
 from pydap.client import open_url
 
 # Time to refactor and change somethings. Once class to download, and another
@@ -65,11 +68,16 @@ class AVISO_fetch(object):
         self.set_dataset()
 
         self.file = os.path.join(self.cfg['datadir'], self.cfg['filename'])
-        self.nc = pupynere.netcdf_file(self.file,'w')
+        try:
+            self.nc = netCDF4.Dataset(self.file,'w', format='NETCDF4')
+        except:
+            self.nc = pupynere.netcdf_file(self.file,'w')
 
         self.download_time()
         self.download_LonLat()
         self.download_data()
+
+        self.nc.close()
 
 
     def set_logger(self):

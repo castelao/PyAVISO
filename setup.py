@@ -25,7 +25,7 @@ Topic :: Scientific/Engineering
 Topic :: Software Development :: Libraries :: Python Modules
 """
 
-version = '0.7.0'
+version = '0.7.1'
 
 install_requires=[
     "numpy >= 1.1",
@@ -33,6 +33,7 @@ install_requires=[
     "Pydap >= 3.1.RC1",
     #"fluid >= 0.1.10",
 ],
+# How to include pupynere or netCDF4 ?
 
 
 setup(

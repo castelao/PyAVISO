@@ -193,6 +193,7 @@ class AVISO_fetch(object):
     def download_LonLat(self):
         """ Download the Lon x Lat coordinates
         """
+        import pdb; pdb.set_trace()
         self.logger.debug("Downloading LonLat")
         data = {}
         limits = self.cfg['limits']
@@ -207,18 +208,18 @@ class AVISO_fetch(object):
         Latlimits = numpy.arange(Lat.shape[0])[(Lat[:]>=limits["latini"]) & (Lat[:]<=limits["latfin"])]
         Latlimits = [Latlimits[0],Latlimits[-1]]
 
-        lat = Lat[Latlimits[0]:Latlimits[-1]]
+        lat = Lat[Latlimits[0]:Latlimits[-1]+1]
 
         if limits['lonfin'] > limits['lonini']:
             Lonlimits = numpy.arange(Lon.shape[0])[(Lon[:]>=limits["lonini"]) & (Lon[:]<=limits["lonfin"])]
             Lonlimits=[Lonlimits[0],Lonlimits[-1]]
 
-            lon = Lon[Lonlimits[0]:Lonlimits[-1]]
+            lon = Lon[Lonlimits[0]:Lonlimits[-1]+1]
         else:
             Lonlimits = [np.nonzero(Lon>=limits['lonini'])[0][0], 
-                    np.nonzero(Lon<=limits['lonfin'])[0][-1]+1] 
+                    np.nonzero(Lon<=limits['lonfin'])[0][-1]] 
 
-            lon = np.append(Lon[Lonlimits[0]:],Lon[:Lonlimits[1]])
+            lon = np.append(Lon[Lonlimits[0]:],Lon[:Lonlimits[1]+1])
                     
 
         self.cfg['limits']['Latlimits'] = Latlimits
@@ -295,6 +296,28 @@ class AVISO_fetch(object):
                         time.sleep(waitingtime)
             #data['h'] = 1e-2*data['h'].swapaxes(1,2)
 
+
+class Products(object):
+    """ Calculate some products from the downloaded data
+    """
+    def __init__(self, cfg):
+        self.cfg = cfg
+        self.file = os.path.join(self.cfg['datadir'], self.cfg['filename'])
+        self.nc = netCDF4.Dataset(self.file, 'a', format='NETCDF4')
+        for tn in range(nc.variables['time'].size):
+            data = {'t': datetime.strptime(nc.variables['time'].units, 
+                'hours since %Y-%m-%d') + timedelta(hours=float(nc.variables['time'][tn])), 
+                'Lat': ma.array(nc.variables['Lat'][:]),
+                'Lon': ma.array(nc.variables['Lon'][:]), 
+                'u': ma.masked_values(nc.variables['u'][tn],
+                    nc.variables['u'].missing_value),
+                'v': ma.masked_values(nc.variables['v'][tn], 
+                    nc.variables['v'].missing_value),
+                }
+
+#products = okuboweiss.okuboweiss(data)
+
+#products = okuboweiss.OkuboWeiss(data, cfg['okuboweiss']) %, logname = metadata['log']['logname'])
 
 
 

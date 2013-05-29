@@ -193,7 +193,6 @@ class AVISO_fetch(object):
     def download_LonLat(self):
         """ Download the Lon x Lat coordinates
         """
-        import pdb; pdb.set_trace()
         self.logger.debug("Downloading LonLat")
         data = {}
         limits = self.cfg['limits']
@@ -243,7 +242,6 @@ class AVISO_fetch(object):
     def download_data(self):
         """ Download h and uv in blocks
         """
-
         # Will download blocks of at most 5MB
         #   i.e. 4e7 floats of 32bits.
         dblocks = max(1, int(4e7/self.slice_size))
@@ -283,10 +281,10 @@ class AVISO_fetch(object):
                     print "Try n: %s" % i
                     try:
                         if Lonlimits[1] > Lonlimits[0]:
-                            tmp = dataset[b1:b2:self.cfg['limits']['t_step'], Lonlimits[0]:Lonlimits[-1],Latlimits[0]:Latlimits[-1]]
+                            tmp = dataset[b1:b2:self.cfg['limits']['t_step'], Lonlimits[0]:Lonlimits[-1]+1,Latlimits[0]:Latlimits[-1]+1]
                         else:
-                            tmp1 = dataset[b1:b2:self.cfg['limits']['t_step'], Lonlimits[0]:,Latlimits[0]:Latlimits[-1]]
-                            tmp2 = dataset[b1:b2:self.cfg['limits']['t_step'], :Lonlimits[-1],Latlimits[0]:Latlimits[-1]]
+                            tmp1 = dataset[b1:b2:self.cfg['limits']['t_step'], Lonlimits[0]:,Latlimits[0]:Latlimits[-1]+1]
+                            tmp2 = dataset[b1:b2:self.cfg['limits']['t_step'], :Lonlimits[-1]+1,Latlimits[0]:Latlimits[-1]+1]
                             tmp = np.append(tmp1, tmp2, axis=1)
                         data[v][ind] = tmp.swapaxes(1,2).astype('f')
                         break

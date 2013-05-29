@@ -24,6 +24,11 @@ except:
     import pupynere
 from pydap.client import open_url
 
+try:
+    from ringslegacy import okuboweiss
+except:
+    pass
+
 # Time to refactor and change somethings. Once class to download, and another
 #   on the top of that to handle the file like it was a MA
 
@@ -298,26 +303,25 @@ class AVISO_fetch(object):
 class Products(object):
     """ Calculate some products from the downloaded data
     """
-    from ringslegacy import okuboweiss
     def __init__(self, cfg):
         self.cfg = cfg
         self.file = os.path.join(self.cfg['datadir'], self.cfg['filename'])
         self.nc = netCDF4.Dataset(self.file, 'a', format='NETCDF4')
 
-        W = nc.createVariable('W', 'f', ('time', 'lat', 'lon'))
-        W.missing_value = nc.variables['u'].missing_value
-        zeta = nc.createVariable('zeta', 'f', ('time', 'lat', 'lon'))
-        zeta.missing_value = nc.variables['u'].missing_value
+        W = self.nc.createVariable('W', 'f', ('time', 'lat', 'lon'))
+        W.missing_value = self.nc.variables['u'].missing_value
+        zeta = self.nc.createVariable('zeta', 'f', ('time', 'lat', 'lon'))
+        zeta.missing_value = self.nc.variables['u'].missing_value
 
-        for tn in range(nc.variables['time'].size):
-            data = {'t': datetime.strptime(nc.variables['time'].units, 
-                'hours since %Y-%m-%d') + timedelta(hours=float(nc.variables['time'][tn])), 
-                'Lat': ma.array(nc.variables['Lat'][:]),
-                'Lon': ma.array(nc.variables['Lon'][:]), 
-                'u': ma.masked_values(nc.variables['u'][tn],
-                    nc.variables['u'].missing_value),
-                'v': ma.masked_values(nc.variables['v'][tn], 
-                    nc.variables['v'].missing_value),
+        for tn in range(self.nc.variables['time'].size):
+            data = {'t': datetime.strptime(self.nc.variables['time'].units, 
+                'hours since %Y-%m-%d') + timedelta(hours=float(self.nc.variables['time'][tn])), 
+                'Lat': ma.array(self.nc.variables['Lat'][:]),
+                'Lon': ma.array(self.nc.variables['Lon'][:]), 
+                'u': ma.masked_values(self.nc.variables['u'][tn],
+                    self.nc.variables['u'].missing_value),
+                'v': ma.masked_values(self.nc.variables['v'][tn], 
+                    self.nc.variables['v'].missing_value),
                 } 
 
             products = okuboweiss.okuboweiss(data)
@@ -325,7 +329,7 @@ class Products(object):
             W[tn] = products['W']
             zeta[tn] = products['zeta']
 
-        nc.close()
+        self.nc.close()
 
 
 

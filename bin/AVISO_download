@@ -45,6 +45,9 @@ parser.add_option("--type", dest="type",
 parser.add_option("-o", "--output", dest="output",
         help="output", default='./aviso.nc')
 
+parser.add_option("--products", dest="products",
+        help="Estimate products like 'W,zeta'")
+
 
 (options, args) = parser.parse_args()
 cfg_file = options.cfg_file
@@ -80,5 +83,7 @@ except:
     pass
 
 aviso.AVISO_fetch(cfg)
+if hasattr(options, 'products'):
+    aviso.Products(cfg)
 
 #data = aviso.Aviso_map(metadata=cfg)

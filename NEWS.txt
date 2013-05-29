@@ -1,3 +1,11 @@
+May-29-2013 0.7.3
+
+First prototype of a new class: Products. The command AVISO_download now can estimate the Okubo-Weiss parameter and relative vorticity after download from AVISO, and save it on the same NetCDF file
+
+0.7.2
+
+Migrating to netCDF4. It is based on HDF5, thus more robust system. Most important, it handles the append mode, important for the capability of estimate some products, to be included soon.
+
 May-21-2013 0.7.0
 
 It now handles negative longitudes, as well as initial longitude bigger than the final one. And in that case it circles the Earth passing through Greenwich until the final longitude.

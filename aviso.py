@@ -298,10 +298,17 @@ class AVISO_fetch(object):
 class Products(object):
     """ Calculate some products from the downloaded data
     """
+    from ringslegacy import okuboweiss
     def __init__(self, cfg):
         self.cfg = cfg
         self.file = os.path.join(self.cfg['datadir'], self.cfg['filename'])
         self.nc = netCDF4.Dataset(self.file, 'a', format='NETCDF4')
+
+        W = nc.createVariable('W', 'f', ('time', 'lat', 'lon'))
+        W.missing_value = nc.variables['u'].missing_value
+        zeta = nc.createVariable('zeta', 'f', ('time', 'lat', 'lon'))
+        zeta.missing_value = nc.variables['u'].missing_value
+
         for tn in range(nc.variables['time'].size):
             data = {'t': datetime.strptime(nc.variables['time'].units, 
                 'hours since %Y-%m-%d') + timedelta(hours=float(nc.variables['time'][tn])), 
@@ -311,11 +318,15 @@ class Products(object):
                     nc.variables['u'].missing_value),
                 'v': ma.masked_values(nc.variables['v'][tn], 
                     nc.variables['v'].missing_value),
-                }
+                } 
 
-#products = okuboweiss.okuboweiss(data)
+            products = okuboweiss.okuboweiss(data)
 
-#products = okuboweiss.OkuboWeiss(data, cfg['okuboweiss']) %, logname = metadata['log']['logname'])
+            W[tn] = products['W']
+            zeta[tn] = products['zeta']
+
+        nc.close()
+
 
 
 

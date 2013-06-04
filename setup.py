@@ -25,11 +25,12 @@ Topic :: Scientific/Engineering
 Topic :: Software Development :: Libraries :: Python Modules
 """
 
-version = '0.7.3'
+version = '0.7.4'
 
 install_requires=[
     "numpy >= 1.1",
     "pupynere >= 1.0.15",
+    "netCDF4 >= 1.0.4",
     "Pydap >= 3.1.RC1",
     #"fluid >= 0.1.10",
 ],
@@ -39,7 +40,7 @@ install_requires=[
 setup(
     name = 'AVISO',
     version = version,
-    description = "A very simple library to interpret and load TOPEX/JASON altimetry data",
+    description = "A library to handle altimetric data produced by AVISO",
     long_description=README + '\n\n' + NEWS,
     classifiers=filter(None, classifiers.split("\n")),
     keywords='altimetry, AVISO, TOPEX, JASON, oceanography, Sea Surface Height',

@@ -77,7 +77,13 @@ class AVISO_fetch(object):
         except:
             self.nc = pupynere.netcdf_file(self.file,'w')
 
+        # ----------
         self.nc.created_datetime = datetime.now().isoformat()
+        self.nc.metadata_map = self.cfg['map']
+        self.nc.metadata_type = self.cfg['type']
+        self.nc.metadata_urlbase = self.cfg['urlbase']
+        self.nc.metadata_force_download = str(self.cfg['force_download'])
+        # ----------
 
         self.set_source_filename()
         self.set_dataset()

@@ -83,7 +83,9 @@ except:
     pass
 
 aviso.AVISO_fetch(cfg)
-if hasattr(options, 'products'):
+#if hasattr(options, 'products'):
+if options.products is not None:
+    print "Hey ho!"
     aviso.Products(cfg)
 
 #data = aviso.Aviso_map(metadata=cfg)

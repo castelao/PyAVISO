@@ -77,6 +77,8 @@ class AVISO_fetch(object):
         except:
             self.nc = pupynere.netcdf_file(self.file,'w')
 
+        self.nc.created_datetime = datetime.now().isoformat()
+
         self.set_source_filename()
         self.set_dataset()
 
@@ -319,9 +321,7 @@ class Products(object):
         zeta.missing_value = self.nc.variables['u'].missing_value
 
         for tn in range(self.nc.variables['time'].size):
-            data = {'t': datetime.strptime(self.nc.variables['time'].units, 
-                'hours since %Y-%m-%d') + timedelta(hours=float(self.nc.variables['time'][tn])), 
-                'Lat': ma.array(self.nc.variables['Lat'][:]),
+            data = {'Lat': ma.array(self.nc.variables['Lat'][:]),
                 'Lon': ma.array(self.nc.variables['Lon'][:]), 
                 'u': ma.masked_values(self.nc.variables['u'][tn],
                     self.nc.variables['u'].missing_value),

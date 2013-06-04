@@ -312,6 +312,11 @@ class AVISO_fetch(object):
 
 class Products(object):
     """ Calculate some products from the downloaded data
+
+        Think about, should I filter the data here or during
+          the analysis? Probably over there, but if I do here
+          I'll need to include some metadata, like filter type
+          and half power cut freq.
     """
     def __init__(self, cfg):
         self.cfg = cfg
@@ -341,8 +346,6 @@ class Products(object):
             zeta[tn] = products['zeta']
 
         self.nc.close()
-
-
 
 
 class Aviso_map(object):

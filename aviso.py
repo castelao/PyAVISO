@@ -629,3 +629,132 @@ def eke(cutperiod=360, dt=7, verbose=False):
 #x = MAFromDAP(dataset_h['Grid_0001'], 'Grid_0001')
 #print dir(x)
 #print x[::10]
+
+
+
+# ==================================================================
+# ==== Part of the script that I used for the NBCR paper
+# ====   I should include this in the future as an option
+# ====   Straight on HDF5. Maybe just netcdf4, which is hdf5.
+#import tables
+#
+#filename = "%s.h5f" % (config['data']['filename'])
+#h5f = tables.openFile(os.path.join(config['data']['datadir'],filename), 'w')
+#
+#filters = tables.Filters(complevel=5, complib='zlib')
+#atom = tables.Float64Atom()
+#
+##if 'aviso' not in h5f.root:
+#gaviso = h5f.createGroup(h5f.root, "aviso", "AVISO data")
+#
+##h5f.root.eddies._v_attrs.data_version = config['data']['data_version']
+#h5f.root.aviso._v_attrs.created = datetime.now().isoformat()
+#
+#h5f.root.aviso._v_attrs.metadata_data_map = metadata['data']['map']
+#h5f.root.aviso._v_attrs.metadata_data_type = metadata['data']['type']
+#h5f.root.aviso._v_attrs.metadata_data_urlbase = metadata['data']['urlbase']
+#h5f.root.aviso._v_attrs.metadata_data_force_download = metadata['data']['force_download']
+#
+#
+#d0 = min(data['datetime'])
+#h5f.createCArray(h5f.root.aviso, 'time', tables.Float64Atom(), (nt,), filters=filters)
+#h5f.root.aviso.time[:] = ma.masked_array([(d-d0).days+(d-d0).seconds/24./60/60 for d in data['datetime']])
+#h5f.root.aviso.time._v_attrs.units = 'days since %s' % datetime.strftime(d0,"%Y-%m-%d %H:%M:%S")
+#h5f.root.aviso.time._v_attrs.missing_value = data['datetime'].fill_value
+#
+#
+#h5f.createCArray(h5f.root.aviso, 'Lat', tables.Float64Atom(), (ni,nj), filters=filters)
+#h5f.root.aviso.Lat[:] = data['Lat']
+#h5f.root.aviso.Lat._v_attrs.units = 'degrees_north'
+#h5f.root.aviso.Lat._v_attrs.missing_value = data['Lat'].fill_value
+#
+#h5f.createCArray(h5f.root.aviso, 'Lon', tables.Float64Atom(), (ni,nj), filters=filters)
+#h5f.root.aviso.Lon[:] = data['Lon']
+#h5f.root.aviso.Lon._v_attrs.units = 'degrees_east'
+#h5f.root.aviso.Lon._v_attrs.missing_value = data['Lon'].fill_value
+#
+#h5f.flush()
+#
+#try:
+#    h5f.createCArray(h5f.root.aviso, 'depth', tables.Float64Atom(), (ni,nj), filters=filters)
+#    h5f.root.aviso.depth[:] = data['z']
+#    h5f.root.aviso.depth._v_attrs.units = 'm'
+#    h5f.root.aviso.depth._v_attrs.missing_value = data['z'].fill_value
+#except:
+#    print "Couldn't save depth"
+#
+#try:
+#    h5f.createCArray(h5f.root.aviso, 'ssh', tables.Float64Atom(), (nt,ni,nj), filters=filters)
+#    h5f.root.aviso.ssh[:] = data['ssh']
+#    h5f.root.aviso.ssh._v_attrs.units = 'm'
+#    h5f.root.aviso.ssh._v_attrs.missing_value = data['ssh'].fill_value
+#
+#    h5f.createCArray(h5f.root.aviso, 'u', tables.Float64Atom(), (nt,ni,nj), filters=filters)
+#    h5f.root.aviso.u[:] = data['u']
+#    h5f.root.aviso.u._v_attrs.units = 'm'
+#    h5f.root.aviso.u._v_attrs.missing_value = data['u'].fill_value
+#    h5f.createCArray(h5f.root.aviso, 'v', tables.Float64Atom(), (nt,ni,nj), filters=filters)
+#    h5f.root.aviso.v[:] = data['v']
+#    h5f.root.aviso.v._v_attrs.units = 'm'
+#    h5f.root.aviso.v._v_attrs.missing_value = data['v'].fill_value
+#finally:
+#    h5f.flush()
+#
+#try:
+#    h5f.createCArray(h5f.root.aviso, 'eta', tables.Float64Atom(), (nt,ni,nj), filters=filters)
+#    h5f.root.aviso.eta[:] = data['eta']
+#    h5f.root.aviso.eta._v_attrs.units = 'm'
+#    h5f.root.aviso.eta._v_attrs.missing_value = data['eta'].fill_value
+#
+#    h5f.createCArray(h5f.root.aviso, 'u_anom', tables.Float64Atom(), (nt,ni,nj), filters=filters)
+#    h5f.root.aviso.u_anom[:] = data['u_anom']
+#    h5f.root.aviso.u_anom._v_attrs.units = 'm'
+#    h5f.root.aviso.u_anom._v_attrs.missing_value = data['u_anom'].fill_value
+#    h5f.createCArray(h5f.root.aviso, 'v_anom', tables.Float64Atom(), (nt,ni,nj), filters=filters)
+#    h5f.root.aviso.v_anom[:] = data['v_anom']
+#    h5f.root.aviso.v_anom._v_attrs.units = 'm'
+#    h5f.root.aviso.v_anom._v_attrs.missing_value = data['v_anom'].fill_value
+#finally:
+#    h5f.flush()
+#
+#h5f.close()
+#
+## ============================================================================
+#logger.info("Calculating products")
+#products = okuboweiss.OkuboWeiss(data, metadata['okuboweiss'], logname = metadata['log']['logname'])
+#
+#products = prepare_masked_array(products)
+## ------------------------------------------------------------------------
+#logger.info("Saving products")
+#h5f = tables.openFile(os.path.join(config['data']['datadir'],filename), 'r+')
+#
+#
+#if 'products' not in h5f.root:
+#    gproducts = h5f.createGroup(h5f.root, "products", "Products")
+#
+#h5f.createCArray(h5f.root.products, 'W', tables.Float64Atom(), (nt,ni,nj), filters=filters)
+#h5f.root.products.W[:] = products['W']
+#h5f.root.products.W._v_attrs.units = 's^-1'
+#h5f.root.products.W._v_attrs.missing_value = products['W'].fill_value
+#
+#h5f.createCArray(h5f.root.products, 'zeta', tables.Float64Atom(), (nt,ni,nj), filters=filters)
+#h5f.root.products.zeta[:] = products['zeta']
+#h5f.root.products.zeta._v_attrs.units = 's^-1'
+#h5f.root.products.zeta._v_attrs.missing_value = products['zeta'].fill_value
+#
+## I don't need to define my W0 at this point.
+##h5f.createCArray(h5f.root.products, 'W0', tables.Float64Atom(), (1,), filters=filters)
+##h5f.root.products.W0[:] = data['W0']
+##h5f.root.products.W0._v_attrs.units = 's^-1'
+##h5f.root.products.W0._v_attrs.missing_value = 1e20
+#
+##h5f.root.products._v_attrs.metadata_okuboweiss_smooth_W0 = metadata['okuboweiss']['W0']
+##h5f.root.products._v_attrs.metadata_okuboweiss_smooth_scale = metadata['okuboweiss']['smooth']['scale']
+##h5f.root.products._v_attrs.metadata_okuboweiss_smooth_method = metadata['okuboweiss']['smooth']['method']
+#
+##h5f.root.eddies._v_attrs.data_version = config['data']['data_version']
+#h5f.root.products._v_attrs.created = datetime.now().isoformat()
+#
+#
+#h5f.flush()
+#h5f.close()

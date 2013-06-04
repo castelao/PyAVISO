@@ -65,18 +65,20 @@ class AVISO_fetch(object):
                     "http://%s:%s@opendap.aviso.oceanobs.com/thredds/dodsC" % \
                     (self.cfg['username'], self.cfg['password'])
         self.logger.debug("urlbase: %s" % self.cfg['urlbase'])
+        #if type(self.cfg['map']) == str:
+        #    self.cfg['map'] = [self.cfg['map']]
 
         if 'force_download' not in self.cfg:
             self.cfg['force_download'] = False
-
-        self.set_source_filename()
-        self.set_dataset()
 
         self.file = os.path.join(self.cfg['datadir'], self.cfg['filename'])
         try:
             self.nc = netCDF4.Dataset(self.file,'w', format='NETCDF4')
         except:
             self.nc = pupynere.netcdf_file(self.file,'w')
+
+        self.set_source_filename()
+        self.set_dataset()
 
         self.download_time()
         self.download_LonLat()
@@ -306,7 +308,10 @@ class Products(object):
     def __init__(self, cfg):
         self.cfg = cfg
         self.file = os.path.join(self.cfg['datadir'], self.cfg['filename'])
-        self.nc = netCDF4.Dataset(self.file, 'a', format='NETCDF4')
+        try:
+            self.nc = netCDF4.Dataset(self.file, 'a', format='NETCDF4')
+        except:
+            return
 
         W = self.nc.createVariable('W', 'f', ('time', 'lat', 'lon'))
         W.missing_value = self.nc.variables['u'].missing_value

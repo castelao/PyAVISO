@@ -201,7 +201,7 @@ class AVISO_fetch(object):
         t = self.dataset['h']['time'][t_ini:t_fin:t_step].tolist()
 
         self.nc.createDimension('time', len(range(t_ini,t_fin,t_step)))
-        nct = self.nc.createVariable('time', 'f', ('time', ))
+        nct = self.nc.createVariable('time', 'f8', ('time', ))
         nct[:] = t
         nct.units = self.dataset['h']['time'].attributes['units']
 
@@ -248,8 +248,8 @@ class AVISO_fetch(object):
         self.nc.createDimension('lat', lat.shape[0])
         self.nc.createDimension('lon', lon.shape[0])
 
-        ncLat = self.nc.createVariable('Lat', 'f', ('lat', 'lon'))
-        ncLon = self.nc.createVariable('Lon', 'f', ('lat', 'lon'))
+        ncLat = self.nc.createVariable('Lat', 'f4', ('lat', 'lon'))
+        ncLon = self.nc.createVariable('Lon', 'f4', ('lat', 'lon'))
 
         ncLat[:] = Lat
         ncLon[:] = Lon
@@ -282,7 +282,7 @@ class AVISO_fetch(object):
 
             print "Getting %s" % v
             #data['h'] = ma.masked_all((len(ti),Lonlimits[-1]-Lonlimits[0], Latlimits[-1]-Latlimits[0]), dtype=numpy.float64)
-            data[v] = self.nc.createVariable(v, 'f', ('time', 'lat', 'lon'))
+            data[v] = self.nc.createVariable(v, 'f4', ('time', 'lat', 'lon'))
             data[v].missing_value = missing_value
 
             # Work on these limits. Must have a better way to handle it
@@ -326,9 +326,9 @@ class Products(object):
         except:
             return
 
-        W = self.nc.createVariable('W', 'f', ('time', 'lat', 'lon'))
+        W = self.nc.createVariable('W', 'f4', ('time', 'lat', 'lon'))
         W.missing_value = self.nc.variables['u'].missing_value
-        zeta = self.nc.createVariable('zeta', 'f', ('time', 'lat', 'lon'))
+        zeta = self.nc.createVariable('zeta', 'f4', ('time', 'lat', 'lon'))
         zeta.missing_value = self.nc.variables['u'].missing_value
 
         for tn in range(self.nc.variables['time'].size):
@@ -535,7 +535,7 @@ class Aviso_map(object):
 
             print "Getting %s" % v
             #data['h'] = ma.masked_all((len(ti),Lonlimits[-1]-Lonlimits[0], Latlimits[-1]-Latlimits[0]), dtype=numpy.float64)
-            self.data[v] = nc.createVariable(v, 'f', ('time', 'lat', 'lon'))
+            self.data[v] = nc.createVariable(v, 'f4', ('time', 'lat', 'lon'))
             self.data[v].missing_value = missing_value
             for b1, b2 in zip(blocks[:-1], blocks[1:]):
                 print "From %s to %s of %s" % (b1, b2, blocks[-1])

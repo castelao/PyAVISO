@@ -71,6 +71,10 @@ class AVISO_fetch(object):
         if 'force_download' not in self.cfg:
             self.cfg['force_download'] = False
 
+        if ~os.path.isdir(self.cfg['datadir']):
+            print "There is no data directory: %s" % self.cfg['datadir']
+            return
+
         self.file = os.path.join(self.cfg['datadir'], self.cfg['filename'])
         try:
             self.nc = netCDF4.Dataset(self.file,'w', format='NETCDF4')

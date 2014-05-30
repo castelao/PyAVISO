@@ -552,14 +552,28 @@ class Aviso_map(object):
             #data['h'] = 1e-2*data['h'].swapaxes(1,2)
 
 
-def set_z(self):
-    """
+def mask_shallow(ncfile, zfile, zlimit, vars = []):
+    """ Mask all variables in vars @ gridpoints shallower than mindepth
 
          Use http://opendap.ccst.inpe.br/Misc/etopo2/ETOPO2v2c_f4.nc
     """
+    nc = netCDF4.Dataset(ncfile, 'a')
+    Lat = nc.variables['Lat'][:]
+    Lon = nc.variables['Lon'][:]
+
     #Lon,Lat = numpy.meshgrid(self.data['lon'],self.data['lat'])
     from fluid.common.common import get_bathymery
-    self.data['z'] = get_bathymery(self.data['Lat'], self.data['Lon'], etopo_file="/Users/castelao/work/misc/ETOPO2v2c_f4.nc")
+    z = get_bathymery(Lat, Lon, etopo_file=zfile)
+    ind = z > zlimit
+    for v in vars:
+        if nc.variables[v].shape[1:] != ind.shape:
+            return
+    I, J = np.nonzero(ind)
+    for i, j in zip(I, J):
+        for v in vars:
+            nc.variables[v][:,i,j] = nc.variables[v].missing_value
+    nc.sync()
+    nc.close()
 
 def mask(self):
     """ Improve it. Make it more flexible

@@ -25,7 +25,7 @@ except:
 from pydap.client import open_url
 
 try:
-    from ringslegacy import okuboweiss
+    from rings import okuboweiss
 except:
     pass
 

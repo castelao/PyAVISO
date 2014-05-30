@@ -216,22 +216,22 @@ class AVISO_fetch(object):
 
         # If data is requested as -180/180, convert to 0/360,
         #   which is the pattern in AVISO
-        if limits['lonini'] < 0: limits['lonini']+=360
-        if limits['lonfin'] < 0: limits['lonfin']+=360
+        if limits['LonIni'] < 0: limits['LonIni']+=360
+        if limits['LonFin'] < 0: limits['LonFin']+=360
 
-        Latlimits = numpy.arange(Lat.shape[0])[(Lat[:]>=limits["latini"]) & (Lat[:]<=limits["latfin"])]
+        Latlimits = numpy.arange(Lat.shape[0])[(Lat[:]>=limits["LatIni"]) & (Lat[:]<=limits["LatFin"])]
         Latlimits = [Latlimits[0],Latlimits[-1]]
 
         lat = Lat[Latlimits[0]:Latlimits[-1]+1]
 
-        if limits['lonfin'] > limits['lonini']:
-            Lonlimits = numpy.arange(Lon.shape[0])[(Lon[:]>=limits["lonini"]) & (Lon[:]<=limits["lonfin"])]
+        if limits['LonFin'] > limits['LonIni']:
+            Lonlimits = numpy.arange(Lon.shape[0])[(Lon[:]>=limits["LonIni"]) & (Lon[:]<=limits["LonFin"])]
             Lonlimits=[Lonlimits[0],Lonlimits[-1]]
 
             lon = Lon[Lonlimits[0]:Lonlimits[-1]+1]
         else:
-            Lonlimits = [np.nonzero(Lon>=limits['lonini'])[0][0], 
-                    np.nonzero(Lon<=limits['lonfin'])[0][-1]] 
+            Lonlimits = [np.nonzero(Lon>=limits['LonIni'])[0][0], 
+                    np.nonzero(Lon<=limits['LonFin'])[0][-1]] 
 
             lon = np.append(Lon[Lonlimits[0]:],Lon[:Lonlimits[1]+1])
                     
@@ -420,7 +420,7 @@ class Aviso_map(object):
         if 'map' not in self.metadata:
             self.metadata['map'] = "madt"       # madt, msla
         if 'limits' not in self.metadata:
-            self.metadata['limits'] = {'latini': 0, 'latfin': 15, 'lonini': 296, 'lonfin': 317}
+            self.metadata['limits'] = {'LatIni': 0, 'LatFin': 15, 'LonIni': 296, 'LonFin': 317}
         if 'datadir' not in self.metadata:
             self.metadata['datadir'] = "./" #"../data"
         if 'urlbase' not in self.metadata:
@@ -504,9 +504,9 @@ class Aviso_map(object):
         limits=self.metadata['limits']
         Lat=dataset_h['NbLatitudes']
         Lon=dataset_h['NbLongitudes']
-        Latlimits=numpy.arange(Lat.shape[0])[(Lat[:]>=limits["latini"]) & (Lat[:]<=limits["latfin"])]
+        Latlimits=numpy.arange(Lat.shape[0])[(Lat[:]>=limits["LatIni"]) & (Lat[:]<=limits["LatFin"])]
         Latlimits=[Latlimits[0],Latlimits[-1]]
-        Lonlimits=numpy.arange(Lon.shape[0])[(Lon[:]>=limits["lonini"]) & (Lon[:]<=limits["lonfin"])]
+        Lonlimits=numpy.arange(Lon.shape[0])[(Lon[:]>=limits["LonIni"]) & (Lon[:]<=limits["LonFin"])]
         Lonlimits=[Lonlimits[0],Lonlimits[-1]]
 
         data['Lon'], data['Lat'] = numpy.meshgrid( (Lon[Lonlimits[0]:Lonlimits[-1]]), (Lat[Latlimits[0]:Latlimits[-1]]) )

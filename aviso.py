@@ -272,18 +272,22 @@ class AVISO_fetch(object):
         ntries = 40
         #------
         data = {}
-        for v, dataset, missing_value in zip(['h','u','v'], 
+        for v, dataset, missing_value, units in zip(['h','u','v'], 
                 [self.dataset['h']['Grid_0001']['Grid_0001'], 
                     self.dataset['uv']['Grid_0001']['Grid_0001'], 
                     self.dataset['uv']['Grid_0002']['Grid_0002']], 
                 [self.dataset['h']['Grid_0001']._FillValue, 
                     self.dataset['uv']['Grid_0001']._FillValue, 
-                    self.dataset['uv']['Grid_0002']._FillValue]):
+                    self.dataset['uv']['Grid_0002']._FillValue],
+                [self.dataset['h']['Grid_0001'].units, 
+                    self.dataset['uv']['Grid_0001'].units, 
+                    self.dataset['uv']['Grid_0002'].units]):
 
             print "Getting %s" % v
             #data['h'] = ma.masked_all((len(ti),Lonlimits[-1]-Lonlimits[0], Latlimits[-1]-Latlimits[0]), dtype=numpy.float64)
             data[v] = self.nc.createVariable(v, 'f4', ('time', 'lat', 'lon'))
             data[v].missing_value = missing_value
+            data[v].units = units
 
             # Work on these limits. Must have a better way to handle it
             Lonlimits = self.cfg['limits']['Lonlimits']

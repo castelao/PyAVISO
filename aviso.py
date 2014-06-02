@@ -292,9 +292,10 @@ class AVISO_fetch(object):
             ntries = 40
             print "Getting %s" % v
             #data['h'] = ma.masked_all((len(ti),Lonlimits[-1]-Lonlimits[0], Latlimits[-1]-Latlimits[0]), dtype=numpy.float64)
-            data = self.nc.createVariable(v, 'f4', ('time', 'lat', 'lon'))
-            missing_value = attr['missing_value']
-            data.missing_value = missing_value
+            data = self.nc.createVariable(v, 'f4', ('time', 'lat', 'lon'),
+                    fill_value=attr['_FillValue'])
+            missing_value = attr['_FillValue']
+            #data.missing_value = missing_value
 
             units = attr['units']
             if units == 'cm':

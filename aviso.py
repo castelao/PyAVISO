@@ -89,11 +89,6 @@ class AVISO_fetch(object):
         self.nc.metadata_force_download = str(self.cfg['force_download'])
         # ----------
 
-        self.set_source_filename()
-        self.set_dataset()
-
-        self.download_time()
-        self.download_LonLat()
         self.download_data()
 
         self.nc.close()
@@ -143,28 +138,35 @@ class AVISO_fetch(object):
         self.logger = logger
 
 
-    def set_source_filename(self):
+    def set_source_filename(self, map):
         """
         """
-        self.cfg['source_filename'] = "dataset-duacs-dt-%s-global-merged-%s" % (self.cfg['type'], self.cfg['map'])
+        assert (map in ['madt', 'msla'])
+
+        self.cfg['source_filename'] = "dataset-duacs-dt-%s-global-merged-%s" % (self.cfg['type'], map)
         self.logger.debug("source_filename: %s" % self.cfg['source_filename'])
 
-    def set_dataset(self):
+    def set_dataset(self, map, var):
         """
         """
+        assert (var in ['h', 'u', 'v'])
         self.logger.debug("Setting the dataset on the DAP server")
+        self.set_source_filename(map)
 
-        self.url = {'h': "%s/%s-h-daily" % (self.cfg['urlbase'], self.cfg['source_filename']), 
-                'uv': "%s/%s-uv-daily" % (self.cfg['urlbase'], self.cfg['source_filename'])}
-        self.dataset = {'h': open_url(self.url['h']), 'uv': open_url(self.url['uv'])}
+        if var == 'h':
+            url = "%s/%s-h-daily" % (self.cfg['urlbase'], self.cfg['source_filename'])
+        if var in ['u', 'v']:
+            url = "%s/%s-uv-daily" % (self.cfg['urlbase'], self.cfg['source_filename'])
 
+        dataset = open_url(url)
         self.logger.debug("Dataset on the DAP server is ready")
+        return dataset
 
-    def download_time(self):
+    def download_time(self, dataset):
         """
         """
         self.logger.debug("Downloading time")
-        t = self.dataset['h']['time'][:]
+        t = dataset['time'][:]
         # Improve it and extract this date from the DAP server
         d0=datetime(1950,1,1)
         if 't_ini' not in self.cfg['limits']:
@@ -184,7 +186,7 @@ class AVISO_fetch(object):
                 d = datetime.strptime(self.cfg['limits']['d_fin'], '%Y-%m-%d')
                 self.cfg['limits']['t_fin'] = np.nonzero(t>((d-d0).days*24))[0][0]
             else:
-                self.cfg['limits']['t_fin'] = self.dataset['h']['time'].shape[0]
+                self.cfg['limits']['t_fin'] = dataset['time'].shape[0]
                 self.logger.debug("Setting t_fin: %s" % self.cfg['limits']['t_fin'])
 
         t_ini = self.cfg['limits']['t_ini']
@@ -202,21 +204,21 @@ class AVISO_fetch(object):
         #else:
         #    self.logger.error("Problems interpreting the time")
 
-        t = self.dataset['h']['time'][t_ini:t_fin:t_step].tolist()
+        t = dataset['time'][t_ini:t_fin:t_step].tolist()
 
         self.nc.createDimension('time', len(range(t_ini,t_fin,t_step)))
         nct = self.nc.createVariable('time', 'f8', ('time', ))
         nct[:] = t
-        nct.units = self.dataset['h']['time'].attributes['units']
+        nct.units = dataset['time'].attributes['units']
 
-    def download_LonLat(self):
+    def download_LonLat(self, dataset):
         """ Download the Lon x Lat coordinates
         """
         self.logger.debug("Downloading LonLat")
         data = {}
         limits = self.cfg['limits']
-        Lat = self.dataset['h']['NbLatitudes'][:].astype('f')
-        Lon = self.dataset['h']['NbLongitudes'][:].astype('f')
+        Lat = dataset['NbLatitudes'][:].astype('f')
+        Lon = dataset['NbLongitudes'][:].astype('f')
 
         # If data is requested as -180/180, convert to 0/360,
         #   which is the pattern in AVISO
@@ -259,21 +261,37 @@ class AVISO_fetch(object):
         ncLon[:] = Lon
 
     def download_data(self):
-        """ Download h and uv in blocks
-        """
-        for v, dataset, missing_value, units in zip(['h','u','v'], 
-                [self.dataset['h']['Grid_0001']['Grid_0001'], 
-                    self.dataset['uv']['Grid_0001']['Grid_0001'], 
-                    self.dataset['uv']['Grid_0002']['Grid_0002']], 
-                [self.dataset['h']['Grid_0001']._FillValue, 
-                    self.dataset['uv']['Grid_0001']._FillValue, 
-                    self.dataset['uv']['Grid_0002']._FillValue],
-                [self.dataset['h']['Grid_0001'].units, 
-                    self.dataset['uv']['Grid_0001'].units, 
-                    self.dataset['uv']['Grid_0002'].units]):
+        """ 
 
-                    self.download_var(v, dataset,
-                            {'missing_value': missing_value, 'units': units})
+             Not a cute way, but works for now.
+        """
+        if self.cfg['map'] == 'madt+msla':
+            dataset = self.set_dataset('madt', 'h')
+
+            self.download_time(dataset)
+            self.download_LonLat(dataset)
+
+            self.download_var('ssh', dataset['Grid_0001']['Grid_0001'], dataset['Grid_0001'].attributes)
+            dataset = self.set_dataset('madt', 'u')
+            self.download_var('u', dataset['Grid_0001']['Grid_0001'], dataset['Grid_0001'].attributes)
+            self.download_var('v', dataset['Grid_0002']['Grid_0002'], dataset['Grid_0002'].attributes)
+
+            dataset = self.set_dataset('msla', 'h')
+            self.download_var('eta', dataset['Grid_0001']['Grid_0001'], dataset['Grid_0001'].attributes)
+            dataset = self.set_dataset('madt', 'u')
+            self.download_var('u_anom', dataset['Grid_0001']['Grid_0001'], dataset['Grid_0001'].attributes)
+            self.download_var('v_anom', dataset['Grid_0002']['Grid_0002'], dataset['Grid_0002'].attributes)
+            return
+
+        dataset = self.set_dataset(self.cfg['map'], 'h')
+
+        self.download_time(dataset)
+        self.download_LonLat(dataset)
+
+        self.download_var('h', dataset['Grid_0001']['Grid_0001'], dataset['Grid_0001'].attributes)
+        dataset = self.set_dataset(self.cfg['map'], 'u')
+        self.download_var('u', dataset['Grid_0001']['Grid_0001'], dataset['Grid_0001'].attributes)
+        self.download_var('v', dataset['Grid_0002']['Grid_0002'], dataset['Grid_0002'].attributes)
 
     def download_var(self, v, dataset, attr):
             # Will download blocks of at most 5MB

@@ -71,7 +71,8 @@ class AVISO_fetch(object):
         if 'force_download' not in self.cfg:
             self.cfg['force_download'] = False
 
-        if not os.path.isdir(self.cfg['datadir']):
+        if (self.cfg['datadir'] != '') and \
+                (not os.path.isdir(self.cfg['datadir'])):
             print "There is no data directory: %s" % self.cfg['datadir']
             return
 

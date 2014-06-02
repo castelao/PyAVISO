@@ -18,7 +18,7 @@ pip install aviso
 
 Now try this to download some data into a NetCDF file:
 
-AVISO_download -R -5/310/15/350 -D 1999-01-01/1999-06-01 -u user_at_AVISO_DAP -p password_at_AVISO_DAP --timestep=30 -o aviso.nc
+AVISO_download -R -5/310/15/350 -D 1999-01-01/1999-06-01 -u user_at_AVISO_DAP -p password_at_AVISO_DAP --map='madt+msla' --timestep=30 -o aviso.nc
 
 topex
 -----

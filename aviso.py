@@ -600,7 +600,7 @@ class Aviso_map(object):
             #data['h'] = 1e-2*data['h'].swapaxes(1,2)
 
 
-def mask_shallow(ncfile, zfile, zlimit, vars = []):
+def mask_shallow(ncfile, zfile, zlimit):
     """ Mask all variables in vars @ gridpoints shallower than mindepth
 
          Use http://opendap.ccst.inpe.br/Misc/etopo2/ETOPO2v2c_f4.nc
@@ -613,13 +613,13 @@ def mask_shallow(ncfile, zfile, zlimit, vars = []):
     from fluid.common.common import get_bathymery
     z = get_bathymery(Lat, Lon, etopo_file=zfile)
     ind = z > zlimit
-    for v in vars:
-        if nc.variables[v].shape[1:] != ind.shape:
-            return
-    I, J = np.nonzero(ind)
-    for i, j in zip(I, J):
-        for v in vars:
-            nc.variables[v][:,i,j] = nc.variables[v].missing_value
+    for v in nc.variables.keys():
+        if nc.variables[v].dimensions == (u'time', u'lat', u'lon'):
+            if nc.variables[v].shape[1:] != ind.shape:
+                return
+            I, J = np.nonzero(ind)
+            for i, j in zip(I, J):
+                nc.variables[v][:,i,j] = nc.variables[v]._FillValue
     nc.sync()
     nc.close()
 

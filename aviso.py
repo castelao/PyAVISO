@@ -291,6 +291,16 @@ class AVISO_fetch(object):
             #data['h'] = ma.masked_all((len(ti),Lonlimits[-1]-Lonlimits[0], Latlimits[-1]-Latlimits[0]), dtype=numpy.float64)
             data[v] = self.nc.createVariable(v, 'f4', ('time', 'lat', 'lon'))
             data[v].missing_value = missing_value
+
+            if units == 'cm':
+                factor = 1e-2
+                units = 'm'
+            elif units == 'cm/s':
+                factor = 1e-2
+                units = 'm/s'
+            else:
+                factor = None
+
             data[v].units = units
 
             # Work on these limits. Must have a better way to handle it
@@ -309,6 +319,11 @@ class AVISO_fetch(object):
                             tmp1 = dataset[b1:b2:self.cfg['limits']['t_step'], Lonlimits[0]:,Latlimits[0]:Latlimits[-1]+1]
                             tmp2 = dataset[b1:b2:self.cfg['limits']['t_step'], :Lonlimits[-1]+1,Latlimits[0]:Latlimits[-1]+1]
                             tmp = np.append(tmp1, tmp2, axis=1)
+
+                        if factor is not None:
+                            ind_valid = tmp != missing_value
+                            tmp[ind_valid] = factor * tmp[ind_valid]
+
                         data[v][ind] = tmp.swapaxes(1,2).astype('f')
                         break
                     except:

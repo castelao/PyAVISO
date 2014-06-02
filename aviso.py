@@ -261,21 +261,6 @@ class AVISO_fetch(object):
     def download_data(self):
         """ Download h and uv in blocks
         """
-        # Will download blocks of at most 5MB
-        #   i.e. 4e7 floats of 32bits.
-        dblocks = min(100, max(1, int(4e7/self.slice_size)))
-
-        ti = numpy.arange(self.cfg['limits']['t_ini'], 
-                self.cfg['limits']['t_fin'], 
-                self.cfg['limits']['t_step'])
-
-        blocks = ti[::dblocks]
-        if ti[-1] not in blocks:
-            blocks = numpy.append(blocks, self.cfg['limits']['t_fin'])
-
-        ntries = 40
-        #------
-        data = {}
         for v, dataset, missing_value, units in zip(['h','u','v'], 
                 [self.dataset['h']['Grid_0001']['Grid_0001'], 
                     self.dataset['uv']['Grid_0001']['Grid_0001'], 
@@ -287,11 +272,31 @@ class AVISO_fetch(object):
                     self.dataset['uv']['Grid_0001'].units, 
                     self.dataset['uv']['Grid_0002'].units]):
 
+                    self.download_var(v, dataset,
+                            {'missing_value': missing_value, 'units': units})
+
+    def download_var(self, v, dataset, attr):
+            # Will download blocks of at most 5MB
+            #   i.e. 4e7 floats of 32bits.
+            dblocks = min(100, max(1, int(4e7/self.slice_size)))
+
+            ti = numpy.arange(self.cfg['limits']['t_ini'],
+                    self.cfg['limits']['t_fin'],
+                    self.cfg['limits']['t_step'])
+
+            blocks = ti[::dblocks]
+            if ti[-1] not in blocks:
+                blocks = numpy.append(blocks, self.cfg['limits']['t_fin'])
+
+            #------
+            ntries = 40
             print "Getting %s" % v
             #data['h'] = ma.masked_all((len(ti),Lonlimits[-1]-Lonlimits[0], Latlimits[-1]-Latlimits[0]), dtype=numpy.float64)
-            data[v] = self.nc.createVariable(v, 'f4', ('time', 'lat', 'lon'))
-            data[v].missing_value = missing_value
+            data = self.nc.createVariable(v, 'f4', ('time', 'lat', 'lon'))
+            missing_value = attr['missing_value']
+            data.missing_value = missing_value
 
+            units = attr['units']
             if units == 'cm':
                 factor = 1e-2
                 units = 'm'
@@ -301,7 +306,7 @@ class AVISO_fetch(object):
             else:
                 factor = None
 
-            data[v].units = units
+            data.units = units
 
             # Work on these limits. Must have a better way to handle it
             Lonlimits = self.cfg['limits']['Lonlimits']
@@ -324,7 +329,7 @@ class AVISO_fetch(object):
                             ind_valid = tmp != missing_value
                             tmp[ind_valid] = factor * tmp[ind_valid]
 
-                        data[v][ind] = tmp.swapaxes(1,2).astype('f')
+                        data[ind] = tmp.swapaxes(1,2).astype('f')
                         break
                     except:
                         waitingtime = 30+i*20

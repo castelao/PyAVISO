@@ -309,7 +309,7 @@ class AVISO_fetch(object):
 
             #------
             ntries = 40
-            print "Getting %s" % v
+            self.logger.info("Getting %s" % v)
             #data['h'] = ma.masked_all((len(ti),Lonlimits[-1]-Lonlimits[0], Latlimits[-1]-Latlimits[0]), dtype=numpy.float64)
             data = self.nc.createVariable(v, 'f4', ('time', 'lat', 'lon'),
                     fill_value=attr['_FillValue'])
@@ -333,10 +333,10 @@ class AVISO_fetch(object):
             Latlimits = self.cfg['limits']['Latlimits']
 
             for b1, b2 in zip(blocks[:-1], blocks[1:]):
-                print "From %s to %s of %s" % (b1, b2, blocks[-1])
+                self.logger.debug("From %s to %s of %s" % (b1, b2, blocks[-1]))
                 ind = numpy.nonzero((ti>=b1) & (ti<b2))
                 for i in range(ntries):
-                    print "Try n: %s" % i
+                    self.logger.debug("Try n: %s" % i)
                     try:
                         if Lonlimits[1] > Lonlimits[0]:
                             tmp = dataset[b1:b2:self.cfg['limits']['t_step'], Lonlimits[0]:Lonlimits[-1]+1,Latlimits[0]:Latlimits[-1]+1]
@@ -353,7 +353,9 @@ class AVISO_fetch(object):
                         break
                     except:
                         waitingtime = 30+i*20
-                        print "Failed to download. I'll try again in %ss" % waitingtime
+                        self.logger.warn(
+                            "Failed to download. I'll try again in %ss" % \
+                                    waitingtime)
                         time.sleep(waitingtime)
             #data['h'] = 1e-2*data['h'].swapaxes(1,2)
 

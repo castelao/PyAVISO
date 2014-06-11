@@ -159,9 +159,18 @@ class AVISO_fetch(object):
         if var in ['u', 'v']:
             url = "%s/%s-uv-daily" % (self.cfg['urlbase'], self.cfg['source_filename'])
 
-        dataset = open_url(url)
-        self.logger.debug("Dataset on the DAP server is ready")
-        return dataset
+        ntries = 40
+        for i in range(ntries):
+            self.logger.info("Connecting with the URL: %s" % url)
+            try:
+                dataset = open_url(url)
+                self.logger.debug("Dataset on the DAP server is ready")
+                return dataset
+            except:
+                waitingtime = 30+i*20
+                self.logger.warn("Failed to open_url. I'll try again in %s" %
+                        waitingtime)
+                time.sleep(waitingtime)
 
     def download_time(self, dataset):
         """

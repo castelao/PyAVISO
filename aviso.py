@@ -144,7 +144,7 @@ class AVISO_fetch(object):
         """
         assert (map in ['madt', 'msla'])
 
-        self.cfg['source_filename'] = "dataset-duacs-dt-%s-global-merged-%s" % (self.cfg['type'], map)
+        self.cfg['source_filename'] = "dataset-duacs-dt-global-allsat-%s" % (map,)
         self.logger.debug("source_filename: %s" % self.cfg['source_filename'])
 
     def set_dataset(self, map, var):
@@ -155,9 +155,9 @@ class AVISO_fetch(object):
         self.set_source_filename(map)
 
         if var == 'h':
-            url = "%s/%s-h-daily" % (self.cfg['urlbase'], self.cfg['source_filename'])
+            url = "%s/%s-h" % (self.cfg['urlbase'], self.cfg['source_filename'])
         if var in ['u', 'v']:
-            url = "%s/%s-uv-daily" % (self.cfg['urlbase'], self.cfg['source_filename'])
+            url = "%s/%s-uv" % (self.cfg['urlbase'], self.cfg['source_filename'])
 
         ntries = 40
         for i in range(ntries):
@@ -227,8 +227,8 @@ class AVISO_fetch(object):
         self.logger.debug("Downloading LonLat")
         data = {}
         limits = self.cfg['limits']
-        Lat = dataset['NbLatitudes'][:].astype('f')
-        Lon = dataset['NbLongitudes'][:].astype('f')
+        Lat = dataset['lat'][:].astype('f')
+        Lon = dataset['lon'][:].astype('f')
 
         # If data is requested as -180/180, convert to 0/360,
         #   which is the pattern in AVISO
@@ -281,16 +281,16 @@ class AVISO_fetch(object):
             self.download_time(dataset)
             self.download_LonLat(dataset)
 
-            self.download_var('ssh', dataset['Grid_0001']['Grid_0001'], dataset['Grid_0001'].attributes)
+            self.download_var('ssh', dataset['adt']['adt'], dataset['adt'].attributes)
             dataset = self.set_dataset('madt', 'u')
-            self.download_var('u', dataset['Grid_0001']['Grid_0001'], dataset['Grid_0001'].attributes)
-            self.download_var('v', dataset['Grid_0002']['Grid_0002'], dataset['Grid_0002'].attributes)
+            self.download_var('u', dataset['u']['u'], dataset['u'].attributes)
+            self.download_var('v', dataset['v']['v'], dataset['v'].attributes)
 
             dataset = self.set_dataset('msla', 'h')
-            self.download_var('eta', dataset['Grid_0001']['Grid_0001'], dataset['Grid_0001'].attributes)
-            dataset = self.set_dataset('madt', 'u')
-            self.download_var('u_anom', dataset['Grid_0001']['Grid_0001'], dataset['Grid_0001'].attributes)
-            self.download_var('v_anom', dataset['Grid_0002']['Grid_0002'], dataset['Grid_0002'].attributes)
+            self.download_var('sla', dataset['sla']['sla'], dataset['sla'].attributes)
+            dataset = self.set_dataset('msla', 'u')
+            self.download_var('u_anom', dataset['u']['u'], dataset['u'].attributes)
+            self.download_var('v_anom', dataset['v']['v'], dataset['v'].attributes)
             return
 
         dataset = self.set_dataset(self.cfg['map'], 'h')
@@ -298,10 +298,13 @@ class AVISO_fetch(object):
         self.download_time(dataset)
         self.download_LonLat(dataset)
 
-        self.download_var('h', dataset['Grid_0001']['Grid_0001'], dataset['Grid_0001'].attributes)
+        if self.cfg['map'] == 'madt':
+            self.download_var('h', dataset['adt']['adt'], dataset['adt'].attributes)
+        elif self.cfg['map'] == 'msla':
+            self.download_var('sla', dataset['sla']['sla'], dataset['sla'].attributes)
         dataset = self.set_dataset(self.cfg['map'], 'u')
-        self.download_var('u', dataset['Grid_0001']['Grid_0001'], dataset['Grid_0001'].attributes)
-        self.download_var('v', dataset['Grid_0002']['Grid_0002'], dataset['Grid_0002'].attributes)
+        self.download_var('u', dataset['u']['u'], dataset['u'].attributes)
+        self.download_var('v', dataset['v']['v'], dataset['v'].attributes)
 
     def download_var(self, v, dataset, attr):
             # Will download blocks of at most 5MB
@@ -320,7 +323,8 @@ class AVISO_fetch(object):
             ntries = 40
             self.logger.info("Getting %s" % v)
             #data['h'] = ma.masked_all((len(ti),Lonlimits[-1]-Lonlimits[0], Latlimits[-1]-Latlimits[0]), dtype=numpy.float64)
-            data = self.nc.createVariable(v, 'f4', ('time', 'lat', 'lon'),
+            #dataset.type.typecode
+            data = self.nc.createVariable(v, 'i4', ('time', 'lat', 'lon'),
                     fill_value=attr['_FillValue'])
             missing_value = attr['_FillValue']
             #data.missing_value = missing_value
@@ -348,17 +352,24 @@ class AVISO_fetch(object):
                     self.logger.debug("Try n: %s" % i)
                     try:
                         if Lonlimits[1] > Lonlimits[0]:
-                            tmp = dataset[b1:b2:self.cfg['limits']['t_step'], Lonlimits[0]:Lonlimits[-1]+1,Latlimits[0]:Latlimits[-1]+1]
+                            tmp = dataset[b1:b2:self.cfg['limits']['t_step'],
+                                    Latlimits[0]:Latlimits[-1]+1,
+                                    Lonlimits[0]:Lonlimits[-1]+1]
                         else:
-                            tmp1 = dataset[b1:b2:self.cfg['limits']['t_step'], Lonlimits[0]:,Latlimits[0]:Latlimits[-1]+1]
-                            tmp2 = dataset[b1:b2:self.cfg['limits']['t_step'], :Lonlimits[-1]+1,Latlimits[0]:Latlimits[-1]+1]
+                            tmp1 = dataset[b1:b2:self.cfg['limits']['t_step'],
+                                    Latlimits[0]:Latlimits[-1]+1,
+                                    Lonlimits[0]: ]
+                            tmp2 = dataset[b1:b2:self.cfg['limits']['t_step'],
+                                    Latlimits[0]:Latlimits[-1]+1,
+                                    :Lonlimits[-1]+1]
                             tmp = np.append(tmp1, tmp2, axis=1)
 
                         if factor is not None:
                             ind_valid = tmp != missing_value
                             tmp[ind_valid] = factor * tmp[ind_valid]
 
-                        data[ind] = tmp.swapaxes(1,2).astype('f')
+                        #data[ind] = tmp.swapaxes(1,2).astype('f')
+                        data[ind] = tmp
                         break
                     except:
                         waitingtime = 30+i*20
@@ -367,6 +378,10 @@ class AVISO_fetch(object):
                                     waitingtime)
                         time.sleep(waitingtime)
             #data['h'] = 1e-2*data['h'].swapaxes(1,2)
+
+            for a in attr:
+                if a not in ['units', '_FillValue']:
+                    setattr(data, a, attr[a])
 
 
 class Products(object):

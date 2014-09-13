@@ -156,7 +156,7 @@ class AVISO_fetch(object):
 
         if var == 'h':
             url = "%s/%s-h" % (self.cfg['urlbase'], self.cfg['source_filename'])
-        if var in ['u', 'v']:
+        elif var in ['u', 'v']:
             url = "%s/%s-uv" % (self.cfg['urlbase'], self.cfg['source_filename'])
 
         ntries = 40

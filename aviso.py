@@ -367,7 +367,7 @@ class AVISO_fetch(object):
                             tmp2 = dataset[b1:b2:self.cfg['limits']['t_step'],
                                     Latlimits[0]:Latlimits[-1]+1,
                                     :Lonlimits[-1]+1]
-                            tmp = np.append(tmp1, tmp2, axis=1)
+                            tmp = np.append(tmp1, tmp2, axis=2)
 
                         if factor is not None:
                             ind_valid = tmp != missing_value

@@ -7,6 +7,7 @@
 
 from optparse import OptionParser
 from os.path import dirname, basename
+from datetime import datetime
 
 import aviso
 
@@ -77,10 +78,13 @@ cfg = {'username': options.username,
 
 try:
     d_ini, d_fin = options.date.split('/')
-    if d_ini != '': cfg['limits']['d_ini'] = d_ini
-    if d_fin != '': cfg['limits']['d_fin'] = d_fin
+    if d_ini != '':
+        cfg['limits']['d_ini'] = datetime.strptime(d_ini, '%Y-%m-%d')
+    if d_fin != '':
+        cfg['limits']['d_fin'] = datetime.strptime(d_fin, '%Y-%m-%d')
 except:
-    pass
+    print "Wasn't able to understand '-D %s'" % options.date
+    raise
 
 aviso.AVISO_fetch(cfg)
 #if hasattr(options, 'products'):

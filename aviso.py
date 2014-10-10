@@ -266,11 +266,11 @@ class AVISO_fetch(object):
         self.slice_size = lon.shape[0]*lat.shape[0]
 
         # ========
-        self.nc.createDimension('lat', lat.shape[0])
-        self.nc.createDimension('lon', lon.shape[0])
+        self.nc.createDimension('latitude', lat.shape[0])
+        self.nc.createDimension('longitude', lon.shape[0])
 
-        ncLat = self.nc.createVariable('Lat', 'f4', ('lat', 'lon'))
-        ncLon = self.nc.createVariable('Lon', 'f4', ('lat', 'lon'))
+        ncLat = self.nc.createVariable('Lat', 'f4', ('latitude', 'longitude'))
+        ncLon = self.nc.createVariable('Lon', 'f4', ('latitude', 'longitude'))
 
         ncLat[:] = Lat
         ncLon[:] = Lon
@@ -329,7 +329,7 @@ class AVISO_fetch(object):
             self.logger.info("Getting %s" % v)
             #data['h'] = ma.masked_all((len(ti),Lonlimits[-1]-Lonlimits[0], Latlimits[-1]-Latlimits[0]), dtype=numpy.float64)
             #dataset.type.typecode
-            data = self.nc.createVariable(v, 'i4', ('time', 'lat', 'lon'),
+            data = self.nc.createVariable(v, 'i4', ('time', 'latitude', 'longitude'),
                     fill_value=attr['_FillValue'])
             missing_value = attr['_FillValue']
             #data.missing_value = missing_value
@@ -405,9 +405,9 @@ class Products(object):
         except:
             return
 
-        W = self.nc.createVariable('W', 'f4', ('time', 'lat', 'lon'))
+        W = self.nc.createVariable('W', 'f4', ('time', 'latitude', 'longitude'))
         W.missing_value = self.nc.variables['u'].missing_value
-        zeta = self.nc.createVariable('zeta', 'f4', ('time', 'lat', 'lon'))
+        zeta = self.nc.createVariable('zeta', 'f4', ('time', 'latitude', 'longitude'))
         zeta.missing_value = self.nc.variables['u'].missing_value
 
         for tn in range(self.nc.variables['time'].size):
@@ -645,7 +645,7 @@ def mask_shallow(ncfile, zfile, zlimit):
     z = get_bathymery(Lat, Lon, etopo_file=zfile)
     ind = z > zlimit
     for v in nc.variables.keys():
-        if nc.variables[v].dimensions == (u'time', u'lat', u'lon'):
+        if nc.variables[v].dimensions == (u'time', u'latitude', u'longitude'):
             if nc.variables[v].shape[1:] != ind.shape:
                 return
             I, J = np.nonzero(ind)

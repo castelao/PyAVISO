@@ -136,9 +136,7 @@ class AVISO_fetch(object):
         #logger.warn("warn message")
         #logger.error("error message")
         #logger.critical("critical message")
-
         self.logger = logger
-
 
     def set_source_filename(self, map):
         """

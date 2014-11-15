@@ -367,10 +367,11 @@ class AVISO_fetch(object):
                                     :Lonlimits[-1]+1]
                             tmp = np.append(tmp1, tmp2, axis=2)
 
+                        ind_valid = tmp != attr['_FillValue']
                         if factor is not None:
-                            ind_valid = tmp != missing_value
                             tmp[ind_valid] = factor * tmp[ind_valid]
 
+                        tmp[~ind_valid] = data._FillValue
                         #data[ind] = tmp.swapaxes(1,2).astype('f')
                         data[ind] = tmp
                         break

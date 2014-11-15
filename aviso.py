@@ -327,9 +327,9 @@ class AVISO_fetch(object):
             self.logger.info("Getting %s" % v)
             #data['h'] = ma.masked_all((len(ti),Lonlimits[-1]-Lonlimits[0], Latlimits[-1]-Latlimits[0]), dtype=numpy.float64)
             #dataset.type.typecode
-            data = self.nc.createVariable(v, 'i4', ('time', 'latitude', 'longitude'),
-                    fill_value=attr['_FillValue'])
-            missing_value = attr['_FillValue']
+            data = self.nc.createVariable(v, 'i2',
+                    ('time', 'latitude', 'longitude'),
+                    fill_value=netCDF4.default_fillvals['i2'])
             #data.missing_value = missing_value
 
             units = attr['units']

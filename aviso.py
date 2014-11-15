@@ -267,9 +267,18 @@ class AVISO_fetch(object):
         self.nc.createDimension('latitude', lat.shape[0])
         self.nc.createDimension('longitude', lon.shape[0])
 
-        ncLat = self.nc.createVariable('Lat', 'f4', ('latitude', 'longitude'))
-        ncLon = self.nc.createVariable('Lon', 'f4', ('latitude', 'longitude'))
+        nclat = self.nc.createVariable('latitude', 'f4',
+                ('latitude',))
+        nclon = self.nc.createVariable('longitude', 'f4',
+                ('longitude',))
 
+        ncLat = self.nc.createVariable('Lat', 'f4',
+                ('latitude', 'longitude'))
+        ncLon = self.nc.createVariable('Lon', 'f4',
+                ('latitude', 'longitude'))
+
+        nclat[:] = lat
+        nclon[:] = lon
         ncLat[:] = Lat
         ncLon[:] = Lon
 

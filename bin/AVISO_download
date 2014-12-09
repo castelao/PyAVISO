@@ -49,6 +49,13 @@ parser.add_option("-o", "--output", dest="output",
 parser.add_option("--products", dest="products",
         help="Estimate products like 'W,zeta'")
 
+parser.add_option("--etopofile", dest="zfile",
+        default=None,
+        help="./ETOPO2v2c_f4.nc")
+
+parser.add_option("--maskshallowerthan", dest="zlimit",
+        type="float", default=None,
+        help="If defined, it will mask all gridpoints shallower than the given limit [m]. For example --maskshallowerthan=200 will mask shallower than 200m.")
 
 (options, args) = parser.parse_args()
 cfg_file = options.cfg_file
@@ -91,5 +98,11 @@ aviso.AVISO_fetch(cfg)
 if options.products is not None:
     print "Hey ho!"
     aviso.Products(cfg)
+
+if options.zlimit is not None:
+    print("I'll mask shallower gridpoint than %s m. Sorry, it can be slow." % \
+            options.zlimit)
+    aviso.mask_shallow(ncfile=options.output, zlimit=-options.zlimit,
+        zfile=options.zfile)
 
 #data = aviso.Aviso_map(metadata=cfg)

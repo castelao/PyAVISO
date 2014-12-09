@@ -328,7 +328,7 @@ class AVISO_fetch(object):
                     self.cfg['limits']['t_step'])
 
             blocks = ti[::dblocks]
-            if ti[-1] not in blocks:
+            if self.cfg['limits']['t_fin'] not in blocks:
                 blocks = numpy.append(blocks, self.cfg['limits']['t_fin'])
 
             #------

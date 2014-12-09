@@ -322,6 +322,8 @@ class AVISO_fetch(object):
             # Will download blocks of at most 5MB
             #   i.e. 4e7 floats of 32bits.
             dblocks = min(100, max(1, int(4e7/self.slice_size)))
+            self.logger.debug("Will download %s in blocks of %s" % \
+                    (v, dblocks))
 
             ti = numpy.arange(self.cfg['limits']['t_ini'],
                     self.cfg['limits']['t_fin'],

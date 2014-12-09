@@ -641,7 +641,7 @@ class Aviso_map(object):
             #data['h'] = 1e-2*data['h'].swapaxes(1,2)
 
 
-def mask_shallow(ncfile, zlimit=-150, zfile=None)
+def mask_shallow(ncfile, zlimit=-150, zfile=None):
     """ Mask all variables in vars @ gridpoints shallower than mindepth
 
          Use http://opendap.ccst.inpe.br/Misc/etopo2/ETOPO2v2c_f4.nc

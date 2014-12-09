@@ -32,7 +32,6 @@ install_requires=[
     "pupynere >= 1.0.15",
     "netCDF4 >= 1.0.4",
     "Pydap >= 3.1.RC1",
-    #"fluid >= 0.1.10",
 ],
 # How to include pupynere or netCDF4 ?
 

@@ -643,14 +643,41 @@ def mask_shallow(ncfile, zfile, zlimit):
     """ Mask all variables in vars @ gridpoints shallower than mindepth
 
          Use http://opendap.ccst.inpe.br/Misc/etopo2/ETOPO2v2c_f4.nc
+
+         In the future move it out of here, into a different support
+           command line
     """
+    if zfile is None:
+        zfile = "http://opendap.ccst.inpe.br/Misc/etopo2/ETOPO2v2c_f4.nc"
+
     nc = netCDF4.Dataset(ncfile, 'a')
-    Lat = nc.variables['Lat'][:]
-    Lon = nc.variables['Lon'][:]
+    Lat = nc.variables['latitude'][:]
+    Lon = nc.variables['longitude'][:]
 
     #Lon,Lat = numpy.meshgrid(self.data['lon'],self.data['lat'])
-    from fluid.common.common import get_bathymery
-    z = get_bathymery(Lat, Lon, etopo_file=zfile)
+    #from fluid.common.common import get_bathymery
+    #z = get_bathymery(Lat, Lon, etopo_file=zfile)
+    # ========================================================================
+    # Not cute, but works for now.
+    ncz = netCDF4.Dataset(zfile, 'r')
+    # -180:180
+    lon_z = ncz.variables['x'][:]
+    lat_z = ncz.variables['y'][:]
+
+    # If input 0:360
+    ind = Lon > 180
+    Lon[ind] = Lon[ind] - 360
+
+    I = Lat.size
+    J = Lon.size
+    z = np.empty((I, J))
+    for i in range(I):
+        for j in range(J):
+            x_ind = (np.absolute(Lon[j] - lon_z)).argmin()
+            y_ind = (np.absolute(Lat[i] - lat_z)).argmin()
+            z[i, j] = ncz.variables['z'][y_ind, x_ind]
+
+    # ========================================================================
     ind = z > zlimit
     for v in nc.variables.keys():
         if nc.variables[v].dimensions == (u'time', u'latitude', u'longitude'):

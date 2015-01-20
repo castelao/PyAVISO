@@ -38,6 +38,13 @@ The longitudes can be defined as [0, 360] or [-180, 180], like::
 
 If -D is not defined, it will download all available timeseries.
 
+It's not recommended to use shallow water altimetric data without a special treatment, so one can add into the command above the options::
+
+    --maskshallowerthan=150 --etopofile=/data/ETOPO2v2c_f4.nc
+
+Which means that all gridpoints shallower than 150m depth will be masked. 
+The depth is defined from the ETOPO bathymetry. 
+On this example, the file "ETOPO2v2c_f4.nc" should be at the directory: "/data/".
 
 You can request a username to access AVISO's OpenDAP server on the website `http://www.aviso.altimetry.fr/en/data/data-access/aviso-opendap.html <http://www.aviso.altimetry.fr/en/data/data-access/aviso-opendap.html>`_
 

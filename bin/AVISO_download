@@ -102,6 +102,9 @@ if options.products is not None:
 if options.zlimit is not None:
     print("I'll mask gridpoints shallower than %s m. Sorry, it can be slow." % \
             options.zlimit)
+    assert (options.zlimit > 0), \
+        "You might have mistaked the depth. It should be positive."
+
     aviso.mask_shallow(ncfile=options.output, zlimit=-options.zlimit,
         zfile=options.zfile)
 

@@ -100,7 +100,7 @@ if options.products is not None:
     aviso.Products(cfg)
 
 if options.zlimit is not None:
-    print("I'll mask shallower gridpoint than %s m. Sorry, it can be slow." % \
+    print("I'll mask gridpoints shallower than %s m. Sorry, it can be slow." % \
             options.zlimit)
     aviso.mask_shallow(ncfile=options.output, zlimit=-options.zlimit,
         zfile=options.zfile)

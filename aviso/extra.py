@@ -31,7 +31,7 @@ except:
     pass
 
 
-class Products(object):
+def products(ncfile):
     """ Calculate some products from the downloaded data
 
         Think about, should I filter the data here or during
@@ -39,32 +39,28 @@ class Products(object):
           I'll need to include some metadata, like filter type
           and half power cut freq.
     """
-    def __init__(self, cfg):
-        self.cfg = cfg
-        self.file = os.path.join(self.cfg['datadir'], self.cfg['filename'])
-        try:
-            self.nc = netCDF4.Dataset(self.file, 'a', format='NETCDF4')
-        except:
-            return
+    assert os.path.isfile(ncfile)
 
-        W = self.nc.createVariable('W', 'f4', ('time', 'latitude', 'longitude'))
-        #W.missing_value = self.nc.variables['u'].missing_value
-        zeta = self.nc.createVariable('zeta', 'f4', ('time', 'latitude', 'longitude'))
-        #zeta.missing_value = self.nc.variables['u'].missing_value
+    nc = netCDF4.Dataset(ncfile, 'a', format='NETCDF4')
 
-        for tn in range(self.nc.variables['time'].size):
-            data = {'Lat': self.nc.variables['Lat'][:],
-                'Lon':self.nc.variables['Lon'][:], 
-                'u': self.nc.variables['u'][tn], 
-                'v': self.nc.variables['v'][tn],
-                } 
+    W = nc.createVariable('W', 'f4', ('time', 'latitude', 'longitude'))
+    #W.missing_value = self.nc.variables['u'].missing_value
+    zeta = nc.createVariable('zeta', 'f4', ('time', 'latitude', 'longitude'))
+    #zeta.missing_value = self.nc.variables['u'].missing_value
 
-            products = okuboweiss.okuboweiss(data)
+    for tn in range(nc.variables['time'].size):
+        data = {'Lat': nc.variables['Lat'][:],
+            'Lon': nc.variables['Lon'][:],
+            'u': nc.variables['u'][tn],
+            'v': nc.variables['v'][tn],
+            }
 
-            W[tn] = products['W']
-            zeta[tn] = products['zeta']
+        products = okuboweiss.okuboweiss(data)
 
-        self.nc.close()
+        W[tn] = products['W']
+        zeta[tn] = products['zeta']
+
+    nc.close()
 
 
 def mask_shallow(ncfile, zlimit=-150, zfile=None):

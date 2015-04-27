@@ -98,8 +98,8 @@ except:
 aviso.AVISO_fetch(cfg)
 #if hasattr(options, 'products'):
 if options.products is not None:
-    print "Hey ho!"
-    aviso.extra.Products(cfg)
+    print "Estimating Okubo-Weiss and Relative Vorticity"
+    aviso.extra.products(options.output)
 
 if options.zlimit is not None:
     print("I'll mask gridpoints shallower than %s m. Sorry, it can be slow." % \

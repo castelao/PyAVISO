@@ -48,6 +48,7 @@ parser.add_option("-o", "--output", dest="output",
         help="output", default='./aviso.nc')
 
 parser.add_option("--products", dest="products",
+        action="store_true", default = False,
         help="Estimate products like 'W,zeta'")
 
 parser.add_option("--etopofile", dest="zfile",

@@ -10,6 +10,7 @@ from os.path import dirname, basename
 from datetime import datetime
 
 import aviso
+import aviso.extra
 
 # ============================================================================
 
@@ -97,7 +98,7 @@ aviso.AVISO_fetch(cfg)
 #if hasattr(options, 'products'):
 if options.products is not None:
     print "Hey ho!"
-    aviso.Products(cfg)
+    aviso.extra.Products(cfg)
 
 if options.zlimit is not None:
     print("I'll mask gridpoints shallower than %s m. Sorry, it can be slow." % \
@@ -105,7 +106,7 @@ if options.zlimit is not None:
     assert (options.zlimit > 0), \
         "You might have mistaked the depth. It should be positive."
 
-    aviso.mask_shallow(ncfile=options.output, zlimit=-options.zlimit,
+    aviso.extra.mask_shallow(ncfile=options.output, zlimit=-options.zlimit,
         zfile=options.zfile)
 
 #data = aviso.Aviso_map(metadata=cfg)

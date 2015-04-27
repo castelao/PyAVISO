@@ -8,7 +8,7 @@ import sys
 from distutils import log
 
 here = os.path.abspath(os.path.dirname(__file__))
-README = "." #open(os.path.join(here, 'README.rst')).read()
+README = open(os.path.join(here, 'README.rst')).read()
 NEWS = "." #open(os.path.join(here, 'NEWS.txt')).read()
 
 

@@ -25,7 +25,7 @@ Topic :: Scientific/Engineering
 Topic :: Software Development :: Libraries :: Python Modules
 """
 
-version = '0.8.5'
+version = '0.9.0'
 
 install_requires=[
     "numpy >= 1.1",
@@ -49,7 +49,7 @@ setup(
     #download_url = 'http://cheeseshop.python.org/packages/source/t/topex/topex-0.1.tar.gz',
     license = 'MIT',
     platforms = ['any'],
-    py_modules=['topex','aviso'],
+    packages=['aviso'],
     zip_safe=True,
     # Fix it !!
     #install_requires=[

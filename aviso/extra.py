@@ -43,10 +43,10 @@ def products(ncfile):
 
     nc = netCDF4.Dataset(ncfile, 'a', format='NETCDF4')
 
-    W = nc.createVariable('W', 'f4', ('time', 'latitude', 'longitude'))
-    #W.missing_value = self.nc.variables['u'].missing_value
-    zeta = nc.createVariable('zeta', 'f4', ('time', 'latitude', 'longitude'))
-    #zeta.missing_value = self.nc.variables['u'].missing_value
+    W = nc.createVariable('W', 'f4', ('time', 'latitude', 'longitude'),
+            fill_value=netCDF4.default_fillvals['f4'])
+    zeta = nc.createVariable('zeta', 'f4', ('time', 'latitude', 'longitude'),
+            fill_value=netCDF4.default_fillvals['f4'])
 
     for tn in range(nc.variables['time'].size):
         data = {'Lat': nc.variables['Lat'][:],

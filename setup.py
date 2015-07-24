@@ -9,8 +9,9 @@ from distutils import log
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
-NEWS = "." #open(os.path.join(here, 'NEWS.txt')).read()
 
+with open('HISTORY.rst') as history_file:
+    history = history_file.read().replace('.. :changelog:', '')
 
 classifiers = """\
 Development Status :: 4 - Beta
@@ -40,7 +41,7 @@ setup(
     name = 'AVISO',
     version = version,
     description = "A library to handle altimetric data produced by AVISO",
-    long_description=README + '\n\n' + NEWS,
+    long_description=README + '\n\n' + history,
     classifiers=filter(None, classifiers.split("\n")),
     keywords='altimetry, AVISO, TOPEX, JASON, oceanography, Sea Surface Height',
     author = 'Guilherme Castelao',

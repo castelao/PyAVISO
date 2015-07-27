@@ -28,7 +28,7 @@ from pydap.client import open_url
 try:
     from rings import okuboweiss
 except:
-    pass
+    print("Sorry, but package rings is not available")
 
 
 def products(ncfile):

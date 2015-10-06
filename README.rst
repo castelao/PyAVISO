@@ -1,6 +1,9 @@
 PyAVISO
 =======
 
+.. image:: https://zenodo.org/badge/4645/castelao/PyAVISO.svg
+   :target: https://zenodo.org/badge/latestdoi/4645/castelao/PyAVISO
+
 .. image:: https://readthedocs.org/projects/aviso/badge/?version=latest
    :target: https://readthedocs.org/projects/aviso/?badge=latest
       :alt: Documentation Status

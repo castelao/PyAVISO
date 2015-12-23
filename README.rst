@@ -8,8 +8,8 @@ PyAVISO
    :target: https://readthedocs.org/projects/aviso/?badge=latest
       :alt: Documentation Status
 
-.. image:: https://img.shields.io/travis/castelao/aviso.svg
-        :target: https://travis-ci.org/castelao/aviso
+.. image:: https://img.shields.io/travis/castelao/PyAVISO.svg
+        :target: https://travis-ci.org/castelao/PyAVISO
 
 .. image:: https://img.shields.io/pypi/v/aviso.svg
         :target: https://pypi.python.org/pypi/aviso
